@@ -12,7 +12,7 @@ class AuthController extends Controller
 {
     public function login()
     {
-        return view('auth.login', ['navbar' => 'navbar6', 'footer' => 'footer']);
+        return view('auth.login', ['navbar' => 'navbar5', 'footer' => 'footer']);
     }
 
     public function register()

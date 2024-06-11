@@ -39,7 +39,7 @@ class PageController extends Controller
         // Mengambil data UMKM yang dimiliki oleh pengguna yang saat ini masuk
         $umkm = Umkm::where('user_id', auth()->id())->first();
 
-        return view('page.juki.dashboard', ['navbar' => 'navbar5', 'footer' => 'footer', 'umkm' => $umkm]);
+        return view('page.juki.dashboard', ['navbar' => 'navbar4', 'footer' => 'footer', 'umkm' => $umkm]);
     }
     
     public function storeUmkm(Request $request)
@@ -75,7 +75,7 @@ class PageController extends Controller
     public function editUmkm($id)
     {
         $umkm = Umkm::findOrFail($id);
-        return view('page.juki.editUmkm', ['navbar' => 'navbar5', 'footer' => 'footer', 'umkm' => $umkm]);
+        return view('page.juki.editUmkm', ['navbar' => 'navbar4', 'footer' => 'footer', 'umkm' => $umkm]);
     }
 
     public function updateUmkm(Request $request, $id)
@@ -134,7 +134,7 @@ class PageController extends Controller
     public function Profil()
     {
         $user = Auth::user();
-        $profile = $user->profile; return view('page.juki.profil', [ 'user' => $user, 'profile' => $profile, 'navbar' => 'navbar5', 'footer' => 'footer' ]);
+        $profile = $user->profile; return view('page.juki.profil', [ 'user' => $user, 'profile' => $profile, 'navbar' => 'navbar4', 'footer' => 'footer' ]);
     }
 
     public function updateProfil(Request $request)
@@ -221,7 +221,7 @@ class PageController extends Controller
         $umkm = Umkm::where('user_id', auth()->id())->first();
         $loker = Loker::where('user_id', auth()->id())->first();
 
-        return view('page.juki.loker', ['navbar' => 'navbar5', 'footer' => 'footer', 'umkm' => $umkm, 'loker' => $loker]);
+        return view('page.juki.loker', ['navbar' => 'navbar4', 'footer' => 'footer', 'umkm' => $umkm, 'loker' => $loker]);
     }
 
     public function storeLoker(Request $request)
@@ -247,7 +247,7 @@ class PageController extends Controller
     public function editLoker($id)
     {
         $loker= Loker::findOrFail($id);
-        return view('page.juki.editLoker', ['navbar' => 'navbar5', 'footer' => 'footer', 'loker' => $loker]);
+        return view('page.juki.editLoker', ['navbar' => 'navbar4', 'footer' => 'footer', 'loker' => $loker]);
     }
 
     public function updateLoker(Request $request, $id)
@@ -294,7 +294,7 @@ class PageController extends Controller
                    ->select('lokers.*', 'umkms.nama_umkm', 'umkms.kota_umkm', 'umkms.lokasi_umkm', 'umkms.foto_umkm')
                    ->get();
 
-        return view('page.juki.info-loker', ['navbar' => 'navbar4', 'footer' => 'footer', 'lokers' => $lokers]);
+        return view('page.juki.info-loker', ['navbar' => 'navbar2', 'footer' => 'footer', 'lokers' => $lokers]);
     }
 
     public function service()

@@ -1,4 +1,4 @@
-<!-- Navbar Dashboard, Profil, dan Loker -->
+<!-- Navbar Info Loker-->
 <header>
     <nav class="navbar navbar-expand-lg navbar-light bg-dark">
         <div class="container-fluid">
@@ -62,8 +62,16 @@
                         @endif
                     @endauth
                 </ul>
+                <!-- Menampilkan Pencarian Loker UMKM berdasarkan Kota -->
+                <div class="ms-1 me-1">
+                    <form class="d-flex">
+                        <input class="form-control me-2" type="search" placeholder="Cari Kota Loker UMKM"
+                            aria-label="Search">
+                        <button class="btn btn-info" type="submit">Cari</button>
+                    </form>
+                </div>
                 <!-- Menampilkan Foto Profil, Email, dan Pilihan Menu Setelah Login-->
-                <div class="me-3">
+                <div class="navbar-nav ms-4 me-4">
                     <div class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle text-warning fw-bold d-flex justify-content-center align-items-center"
                             href="#" id="gmailDropdown" role="button" data-bs-toggle="dropdown"

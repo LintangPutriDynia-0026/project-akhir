@@ -47,9 +47,10 @@
                                                 {{ $loker->kualifikasi }}
                                             </p>
                                             <div>
-                                                <p class="my-auto rounded py-1 bg-warning px-2 fw-bold text-center"
+                                                <a href="mailto:{{ $umkm->user->email }}"
+                                                    class="w-100 my-auto rounded py-1 btn btn-warning btn-block px-2 fw-bold text-primary text-decoration-none"
                                                     style="font-size: 14px">Kirim Email
-                                                </p>
+                                                </a>
                                             </div>
                                         </div>
                                     </div>

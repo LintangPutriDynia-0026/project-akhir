@@ -71,7 +71,7 @@
                     </form>
                 </div>
                 <!-- Menampilkan Foto Profil, Email, dan Pilihan Menu Setelah Login-->
-                <div class="navbar-nav me-4">
+                <div class="navbar-nav ms-4 me-4">
                     <div class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle text-warning fw-bold d-flex justify-content-center align-items-center"
                             href="#" id="gmailDropdown" role="button" data-bs-toggle="dropdown"

@@ -22,6 +22,21 @@
             background-color: rgba(0, 0, 0, 10);
             /* Warna tipis untuk menu aktif */
         }
+
+        /* CSS untuk animasi geser ke kiri */
+        .page-transition {
+            animation: slideToLeft 0.5s ease;
+        }
+
+        @keyframes slideToLeft {
+            0% {
+                transform: translateX(100%);
+            }
+
+            100% {
+                transform: translateX(0);
+            }
+        }
     </style>
 </head>
 
@@ -42,7 +57,7 @@
     @endif
 
     <!-- Halaman content -->
-    <main class="flex-shrink-0">
+    <main class="flex-shrink-0 @if (!Request::is('login')) page-transition @endif">
         @yield('content')
     </main>
 
