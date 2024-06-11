@@ -122,10 +122,10 @@ class PageController extends Controller
 
     public function destroyUmkm($id)
     {
-        // Find the UMKM by ID
+        // Find UMKM dengan ID
         $umkm = Umkm::findOrFail($id);
     
-        // Delete the UMKM
+        // Delete UMKM
         $umkm->delete();
 
         return redirect()->route('dashboard')->with('success', 'UMKM berhasil dihapus.');
