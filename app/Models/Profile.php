@@ -5,19 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Loker extends Model
+class Profile extends Model
 {
     use HasFactory;
-
     protected $fillable = [
-        'foto_umkm',
-        'nama_umkm',
-        'kota_umkm',
-        'lokasi_umkm',
-        'posisi_loker',
-        'jumlah_loker',
-        'kualifikasi',
         'email',
+        'password',
+        'nama',
+        'alamat',
+        'foto_profile',
+        'ktp',
         'user_id',
     ];
 

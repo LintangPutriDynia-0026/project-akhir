@@ -3,11 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Profile;
+use App\Models\Umkm;
+use App\Models\Loker;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Yajra\DataTables\DataTables;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class PageController extends Controller
 {
@@ -17,24 +25,262 @@ class PageController extends Controller
         return view('page.juki.home', ['navbar' => 'navbar1', 'footer' => 'footer']);
     }
 
-    public function viewUmkm()
+    public function showUmkm()
     {
-        return view('page.juki.umkm', ['navbar' => 'navbar2', 'footer' => 'footer']);
+        // Mengambil semua data UMKM dari database
+        $umkms = Umkm::all();
+
+        // Mengirim data UMKM ke tampilan 'umkm.blade.php'
+        return view('page.juki.umkm', ['navbar' => 'navbar2', 'footer' => 'footer', 'umkms' => $umkms]);
     }
 
-    public function addDashboard()
+    public function showDashboard()
     {
-        return view('page.juki.dashboard', ['navbar' => 'navbar5', 'footer' => 'footer']);
+        // Mengambil data UMKM yang dimiliki oleh pengguna yang saat ini masuk
+        $umkm = Umkm::where('user_id', auth()->id())->first();
+
+        return view('page.juki.dashboard', ['navbar' => 'navbar5', 'footer' => 'footer', 'umkm' => $umkm]);
+    }
+    
+    public function storeUmkm(Request $request)
+    {
+        // Validasi input
+        $request->validate([
+            'nama_umkm' => 'required|string|max:255',
+            'kota_umkm' => 'required|string|max:255',
+            'lokasi_umkm' => 'required|string|max:255',
+            'deskripsi' => 'required|string|max:255',
+            'kontak' => 'required|string|min:0|max:15',
+            'foto_umkm' => 'required|image|max:2048',
+        ]);
+
+        // Upload gambar
+        $fileName = time() . '_' . $request->foto_umkm->getClientOriginalName();
+        $request->foto_umkm->storeAs('umkm_images', $fileName, 'public');
+
+        // Simpan data UMKM
+        UMKM::create([
+            'nama_umkm' => $request->nama_umkm,
+            'kota_umkm' => $request->kota_umkm,
+            'lokasi_umkm' => $request->lokasi_umkm,
+            'deskripsi' => $request->deskripsi,
+            'kontak' => $request->kontak,
+            'foto_umkm' => $fileName,
+            'user_id' => auth()->user()->id,
+        ]);
+
+        return redirect()->route('dashboard')->with('success', 'UMKM berhasil ditambahkan.');
     }
 
-    public function addProfil()
+    public function editUmkm($id)
     {
-        return view('page.juki.profil', ['navbar' => 'navbar5', 'footer' => 'footer']);
+        $umkm = Umkm::findOrFail($id);
+        return view('page.juki.editUmkm', ['navbar' => 'navbar5', 'footer' => 'footer', 'umkm' => $umkm]);
     }
 
-    public function addLoker()
+    public function updateUmkm(Request $request, $id)
     {
-        return view('page.juki.loker', ['navbar' => 'navbar5', 'footer' => 'footer']);
+        // Validasi input
+        $request->validate([
+            'nama_umkm' => 'required|string|max:255',
+            'kota_umkm' => 'required|string|max:255',
+            'lokasi_umkm' => 'required|string|max:255',
+            'deskripsi' => 'required|string|max:255',
+            'kontak' => 'required|string|min:0|max:15',
+            'foto_umkm' => 'nullable|image|max:2048', // nullable untuk tidak wajib mengupload ulang
+        ]);
+
+        // Cari data UMKM berdasarkan ID
+        $umkm = Umkm::findOrFail($id);
+
+        // Jika ada file foto yang diupload
+        if ($request->hasFile('foto_umkm')) {
+            // Hapus file foto lama jika ada
+            if ($umkm->foto_umkm && Storage::exists('public/umkm_images/' . $umkm->foto_umkm)) {
+                Storage::delete('public/umkm_images/' . $umkm->foto_umkm);
+            }
+
+            // Upload file foto baru
+            $fileName = time() . '_' . $request->foto_umkm->getClientOriginalName();
+            $request->foto_umkm->storeAs('public/umkm_images', $fileName);
+
+            // Update nama file foto di database
+            $umkm->foto_umkm = $fileName;
+        }
+
+        // Update data UMKM di database
+        $umkm->update([
+            'nama_umkm' => $request->nama_umkm,
+            'kota_umkm' => $request->kota_umkm,
+            'lokasi_umkm' => $request->lokasi_umkm,
+            'deskripsi' => $request->deskripsi,
+            'kontak' => $request->kontak,
+        ]);
+
+        return redirect()->route('dashboard')->with('success', 'UMKM berhasil diupdate.');
+    }
+
+    public function destroyUmkm($id)
+    {
+        // Find the UMKM by ID
+        $umkm = Umkm::findOrFail($id);
+    
+        // Delete the UMKM
+        $umkm->delete();
+
+        return redirect()->route('dashboard')->with('success', 'UMKM berhasil dihapus.');
+    }
+
+    public function Profil()
+    {
+        $user = Auth::user();
+        $profile = $user->profile; return view('page.juki.profil', [ 'user' => $user, 'profile' => $profile, 'navbar' => 'navbar5', 'footer' => 'footer' ]);
+    }
+
+    public function updateProfil(Request $request)
+    {
+        $user = Auth::user();
+        $profile = $user->profile;
+
+        if (!$profile) {
+            $profile = new Profile();
+            $profile->user_id = $user->id;
+        }
+
+        $validator = Validator::make($request->all(), [
+            'foto_profile' => 'image|mimes:jpeg,png,jpg|max:2048',
+            'nama' => 'required|string|max:255',
+            'email' => [
+                'required',
+                'email',
+                'max:255',
+                Rule::unique('users')->ignore($user->id),
+            ],
+            'password' => $request->filled('password') ? 'required|min:8|confirmed' : '',
+            'alamat' => 'required|string|max:255',
+            'no_wa' => 'required|string|min:0|max:15',
+            'ktp' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->route('profil')
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        // Update user data
+        $userData = [
+            'nama' => $request->nama,
+            'email' => $request->email,
+            'alamat' => $request->alamat,
+            'no_wa' => $request->no_wa,
+        ];
+
+        if ($request->filled('password')) {
+            $userData['password'] = Hash::make($request->password);
+        }
+
+        // Save user data menggunakan DB::table
+        $userSaved = DB::table('users')->where('id', $user->id)->update($userData);
+
+        if (!$userSaved) {
+            return redirect()->route('profil')->with('error', 'Gagal memperbarui profil pengguna');
+        }
+
+        // Update profile data
+        if ($request->hasFile('foto_profile')) {
+            if ($profile->foto_profile) {
+                Storage::delete('public/' . $profile->foto_profile);
+            }
+            $foto_profile = $request->file('foto_profile');
+            $foto_profile_path = $foto_profile->store('public/profile_images');
+            $profile->foto_profile = str_replace('public/', '', $foto_profile_path);
+        }
+
+        if ($request->hasFile('ktp')) {
+            if ($profile->ktp) {
+                Storage::delete('public/' . $profile->ktp);
+            }
+            $ktp = $request->file('ktp');
+            $ktp_path = $ktp->store('public/ktps');
+            $profile->ktp = str_replace('public/', '', $ktp_path);
+        }
+
+        // Save profile data
+        $profileSaved = $profile->save();
+
+        if ($profileSaved) {
+            return redirect()->route('profil')->with('success', 'Profil berhasil diperbarui');
+        } else {
+            return redirect()->route('profil')->with('error', 'Gagal memperbarui profil');
+        }
+    }
+
+    public function showLoker()
+    {
+        $umkm = Umkm::where('user_id', auth()->id())->first();
+        $loker = Loker::where('user_id', auth()->id())->first();
+
+        return view('page.juki.loker', ['navbar' => 'navbar5', 'footer' => 'footer', 'umkm' => $umkm, 'loker' => $loker]);
+    }
+
+    public function storeLoker(Request $request)
+    {
+        // Validasi input
+        $request->validate([
+            'posisi_loker' => 'required|string|max:255',
+            'jumlah_loker' => 'required|integer|min:1',
+            'kualifikasi' => 'required|string|max:255',
+        ]);
+
+        // Menyimpan data Loker
+        Loker::create([
+            'posisi_loker' => $request->posisi_loker,
+            'jumlah_loker' => $request->jumlah_loker,
+            'kualifikasi' => $request->kualifikasi,
+            'user_id' => Auth::id(),
+        ]);
+
+        return redirect()->route('loker')->with('success', 'Loker berhasil ditambahkan.');
+    }
+
+    public function editLoker($id)
+    {
+        $loker= Loker::findOrFail($id);
+        return view('page.juki.editLoker', ['navbar' => 'navbar5', 'footer' => 'footer', 'loker' => $loker]);
+    }
+
+    public function updateLoker(Request $request, $id)
+    {
+        // Validasi input
+        $request->validate([
+            'posisi_loker' => 'required|string|max:255',
+            'jumlah_loker' => 'required|integer|min:1',
+            'kualifikasi' => 'required|string|max:255',
+        ]);
+
+        // Find Loker record dengan id
+        $loker = Loker::findOrFail($id);
+
+        // Update Loker record
+        $loker->update([
+            'posisi_loker' => $request->posisi_loker,
+            'jumlah_loker' => $request->jumlah_loker,
+            'kualifikasi' => $request->kualifikasi,
+        ]);
+
+        return redirect()->route('loker')->with('success', 'Loker berhasil diperbarui.');
+    }
+
+    public function destroyLoker($id)
+    {
+        // Find UMKM dengan ID
+        $loker = Loker::findOrFail($id);
+    
+        // Delete UMKM
+        $loker->delete();
+
+        return redirect()->route('loker')->with('success', 'Loker berhasil dihapus.');
     }
 
     public function about()
@@ -44,7 +290,11 @@ class PageController extends Controller
 
     public function infoLoker()
     {
-        return view('page.juki.info-loker', ['navbar' => 'navbar4', 'footer' => 'footer']);
+        $lokers = Loker::join('umkms', 'umkms.user_id', '=', 'lokers.user_id')
+                   ->select('lokers.*', 'umkms.nama_umkm', 'umkms.kota_umkm', 'umkms.lokasi_umkm', 'umkms.foto_umkm')
+                   ->get();
+
+        return view('page.juki.info-loker', ['navbar' => 'navbar4', 'footer' => 'footer', 'lokers' => $lokers]);
     }
 
     public function service()
@@ -83,7 +333,6 @@ class PageController extends Controller
             'tanggal_lahir' => 'required|date',
             'jenis_kelamin' => 'required|in:laki-laki,perempuan',
             'no_wa' => 'required|string|min:0|max:15',
-            'ktp' => 'required|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
         if ($validator->fails()) {
@@ -91,10 +340,6 @@ class PageController extends Controller
                 ->withErrors($validator)
                 ->withInput();
         }
-
-        $image = $request->file('ktp');
-        $imageName = time().'.'.$image->extension();
-        $image->move(public_path('uploads'), $imageName);
 
         $user = User::create([
             'nama' => $request->nama,
@@ -104,7 +349,6 @@ class PageController extends Controller
             'tanggal_lahir' => $request->tanggal_lahir,
             'jenis_kelamin' => $request->jenis_kelamin,
             'no_wa' => $request->no_wa,
-            'ktp' => $imageName,
         ]);
 
         $user->assignRole($request->role);
@@ -136,7 +380,6 @@ class PageController extends Controller
             'no_wa' => 'required|string',
             'tanggal_lahir' => 'required|date',
             'alamat' => 'required|string|max:255',
-            'ktp' => 'required|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
         if ($validator->fails()) {
@@ -157,12 +400,12 @@ class PageController extends Controller
         $user->no_wa = $request->no_wa;
         $user->tanggal_lahir = $request->tanggal_lahir;
         $user->alamat = $request->alamat;
-        if ($request->hasFile('ktp')) {
-            $image = $request->file('ktp');
-            $imageName = time().'.'.$image->extension();
-            $image->move(public_path('uploads'), $imageName);
-            $user->ktp = $imageName;
-        }
+        // if ($request->hasFile('ktp')) {
+        //     $image = $request->file('ktp');
+        //     $imageName = time().'.'.$image->extension();
+        //     $image->move(public_path('uploads'), $imageName);
+        //     $user->ktp = $imageName;
+        // }
         $user->save();
 
         $user->syncRoles([$request->role]);
@@ -184,5 +427,48 @@ class PageController extends Controller
         $user->syncRoles([]);
 
         return redirect()->route('page.admin.index')->with('success', 'User deleted successfully');
+    }
+
+    public function getDatatable(Request $request)
+    {
+        if ($request->ajax()) {
+            try {
+                $data = User::query();
+
+                if ($request->filled('jenis_kelamin')) {
+                    $data = $data->where('jenis_kelamin', $request->jenis_kelamin);
+                }
+
+                $filteredData = $data->get();
+                
+                return DataTables::of($filteredData)
+                    ->addIndexColumn()
+                    ->editColumn('jenis_kelamin', function ($model) {
+                        if ($model->jenis_kelamin === 'laki-laki') {
+                            return '<div class="rounded px-3 py-1 bg-black w-60 mx-auto">laki-laki</div>';
+                        } else {
+                            return '<div class="rounded px-3 py-1 bg-pink text-white w-60 mx-auto">perempuan</div>';
+                        }
+                    })
+                    ->addColumn('action', function($row){
+                        $editUrl = route('page.admin.edit', ['id' => $row->id]);
+                        $deleteUrl = route('page.admin.delete', ['id' => $row->id]);
+
+                        $actionBtn = '<div class="d-flex justify-content-center">
+                                        <a href="'.$editUrl.'" class="edit btn btn-warning btn-sm fw-semibold">Update</a>
+                                            <form action="'.$deleteUrl.'" method="POST" class="d-inline-block ms-1">
+                                                '.csrf_field().' <button class="btn btn-danger btn-sm fw-semibold" type="submit">Delete</button>
+                                            </form>
+                                    </div>';
+                        return $actionBtn;
+                    })
+                    ->rawColumns(['jenis_kelamin', 'action'])
+                    ->make(true);
+            } catch (\Exception $e) {
+                Log::error($e);
+                return response()->json(['error' => 'Something went wrong!'], 500);
+            }
+        }
+        return abort(404);
     }
 }

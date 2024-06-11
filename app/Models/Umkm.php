@@ -5,16 +5,23 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Dashboard extends Model
+class Umkm extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'gambar',
+        'foto_umkm',
         'nama_umkm',
-        'nama_owner',
         'kota_umkm',
         'lokasi_umkm',
-        'kualifikasi',
+        'deskripsi',
+        'kontak',
+        'user_id',
     ];
+
+    // Relationship dengan User
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

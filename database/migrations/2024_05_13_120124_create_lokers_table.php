@@ -13,13 +13,9 @@ return new class extends Migration
     {
         Schema::create('lokers', function (Blueprint $table) {
             $table->id();
-            $table->text('gambar');
-            $table->string('nama_umkm');
-            $table->string('nama_owner');
-            $table->string('kota_umkm');
-            $table->string('lokasi_umkm');
-            $table->string('email');
-            $table->string('kualifikasi');
+            $table->string('posisi_loker');
+            $table->integer('jumlah_loker');
+            $table->text('kualifikasi');
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->timestamps();

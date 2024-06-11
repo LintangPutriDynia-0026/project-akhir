@@ -120,16 +120,6 @@
                                     </span>
                                 @enderror
                             </div>
-                            <div class="mb-1">
-                                <label for="ktp" class="form-label">Select a file :
-                                    <br>(Foto KTP/Foto KTM/Kartu
-                                    Pelajar*)</label>
-                                <input type="file" class="form-control @error('ktp') is-invalid @enderror" id="ktp"
-                                    name="ktp" required>
-                                @error('ktp')
-                                    <div class="text-danger">{{ $message }}</div>
-                                @enderror
-                            </div>
                             <div class="mb-3 mt-3">
                                 <label for="role" class="form-label fw-semibold">Role</label>
                                 <select class="form-select @error('role') is-invalid @enderror" name="role">

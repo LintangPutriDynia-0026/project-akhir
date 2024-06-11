@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('page.juki.home', ['navbar' => 'navbar1', 'footer' => 'footer']);
 });
 
 // Auth
@@ -35,12 +35,8 @@ Route::post('/password/reset', 'Auth\ResetPasswordController@reset');
 use App\Http\Controllers\PageController;
 // Route untuk Halaman Utama Website JUKI http://127.0.0.1:8000/page
 Route::get('juki', [PageController::class, 'index'])->name('juki.index');
-// About Us http://127.0.0.1:8000/about
 Route::get('/about', [PageController::class, 'about'])->name('about');
-// Service http://127.0.0.1:8000/service
 Route::get('/service', [PageController::class, 'service'])->name('service');
-
-// Route untuk Cek Halaman Admin http://127.0.0.1:8000/admin
 Route::get('admin', [PageController::class, 'admin'])->name('admin.dashboard');
 
 // Autentikasi Middleware untuk Role Login User dan Admin
@@ -49,16 +45,20 @@ Route::prefix('page')->middleware('authentication')->group(function () {
     // Halaman Website JUKI
     Route::prefix('juki')->middleware('role:superadmin|user')->group(function () {
         Route::get('/', [PageController::class, 'juki'])->name('page.juki');
-        // Halaman UMKM Muncul Setelah Login http://127.0.0.1:8000/umkm
-        Route::get('/umkm', [PageController::class, 'viewUmkm'])->name('umkm');
-        // Info Loker http://127.0.0.1:8000/info-loker
+        Route::get('/umkm', [PageController::class, 'showUmkm'])->name('umkm');
         Route::get('/info-loker', [PageController::class, 'infoLoker'])->name('info-loker');
-        // Dasboard http://127.0.0.1:8000/dashboard
-        Route::get('/dashboard', [PageController::class, 'addDashboard'])->name('dashboard');
-        // Profil http://127.0.0.1:8000/profil
-        Route::get('/profil', [PageController::class, 'addProfil'])->name('profil');
-        // Loker http://127.0.0.1:8000/loker
-        Route::get('/loker', [PageController::class, 'addLoker'])->name('loker');
+        Route::get('/dashboard', [PageController::class, 'showDashboard'])->name('dashboard');
+        Route::post('/dashboard', [PageController::class, 'storeUmkm'])->name('umkm.store');
+        Route::get('/editUmkm/{id}', [PageController::class, 'editUmkm'])->name('umkm.edit');
+        Route::put('/updateUmkm/{id}', [PageController::class, 'updateUmkm'])->name('umkm.update');
+        Route::post('/deleteUmkm/{id}', [PageController::class, 'destroyUmkm'])->name('umkm.destroy');
+        Route::get('/profil', [PageController::class, 'Profil'])->name('profil');
+        Route::post('/updateProfil', [PageController::class, 'updateProfil'])->name('profil.update');
+        Route::get('/loker', [PageController::class, 'showLoker'])->name('loker');
+        Route::post('/loker', [PageController::class, 'storeLoker'])->name('loker.store');
+        Route::get('/editLoker/{id}', [PageController::class, 'editLoker'])->name('loker.edit');
+        Route::put('/updateLoker/{id}', [PageController::class, 'updateLoker'])->name('loker.update');
+        Route::post('/deleteLoker/{id}', [PageController::class, 'destroyLoker'])->name('loker.destroy');
         // Route::get('/add', [PageController::class, 'addProduct'])->name('page.juki.add');
         // Route::post('/store', [PageController::class, 'storeProduct'])->name('page.juki.store');
         // Route::get('/edit/{id}', [PageController::class, 'editProduct'])->name('page.juki.edit');
@@ -70,7 +70,7 @@ Route::prefix('page')->middleware('authentication')->group(function () {
     // Halaman Admin
     Route::prefix('admin')->middleware('role:superadmin')->group(function () {
         // http://127.0.0.1:8000/page/admin
-        Route::get('/', [PageController::class, 'admin'])->name('page.admin');
+        Route::get('/', [PageController::class, 'admin'])->name('page.admin.dashboard');
         // http://127.0.0.1:8000/page/admin/users
         Route::get('/users', [PageController::class, 'users'])->name('page.admin.index');
         Route::get('/add', [PageController::class, 'addUser'])->name('page.admin.add');
@@ -78,6 +78,7 @@ Route::prefix('page')->middleware('authentication')->group(function () {
         Route::get('/edit/{id}', [PageController::class, 'editUser'])->name('page.admin.edit');
         Route::put('/update/{id}', [PageController::class, 'updateUser'])->name('page.admin.update');
         Route::post('/delete/{id}', [PageController::class, 'deleteUser'])->name('page.admin.delete');
+        Route::get('/get-datatable', [PageController::class, 'getDatatable'])->name('get-datatable');
     });
 
 });

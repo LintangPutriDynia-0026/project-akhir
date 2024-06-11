@@ -16,12 +16,11 @@ return new class extends Migration
             $table->string('nama');
             $table->date('tanggal_lahir')->default('2000-01-01')->nullable();;
             $table->enum('jenis_kelamin', ['laki-laki', 'perempuan'])->default('laki-laki')->nullable();;
-            $table->string('alamat')->nullable();
+            $table->text('alamat')->nullable();
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->string('no_wa');
-            $table->string('ktp');
             $table->rememberToken();
             $table->timestamps();
         });

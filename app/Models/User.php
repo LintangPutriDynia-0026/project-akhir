@@ -26,7 +26,6 @@ class User extends Authenticatable
         'jenis_kelamin',
         'alamat',
         'no_wa',
-        'ktp',
     ];
 
     /**
@@ -48,10 +47,19 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
-    
-    // Mengambil foto profil dari email pengguna
-    public function getProfilePhotoUrlAttribute()
+
+    public function profile()
     {
-        return 'https://www.gravatar.com/avatar/' . md5(strtolower(trim($this->email))) . '?s=80&d=mp';
+        return $this->hasOne(Profile::class);
+    }
+
+    public function umkm()
+    {
+        return $this->hasOne(Profile::class);
+    }
+
+    public function loker()
+    {
+        return $this->hasOne(Profile::class);
     }
 }

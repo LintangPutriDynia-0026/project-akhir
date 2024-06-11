@@ -4,7 +4,7 @@
         <div class="container-fluid">
             <!-- Logo Website JUKI -->
             <a class="navbar-brand ms-4" href="{{ route('juki.index') }}">
-                <img src="{{ asset('images/logo.png') }}" width="50" height="50" alt="Logo JUKI">
+                <img src="{{ asset('images/logo.png') }}" width="50px" height="50px" alt="Logo JUKI">
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                 data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
@@ -65,11 +65,20 @@
                 <!-- Menampilkan Foto Profil, Email, dan Pilihan Menu Setelah Login-->
                 <div class="me-3">
                     <div class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle text-warning fw-bold" href="#" id="gmailDropdown"
-                            role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <img src="{{ Auth::user()->profilePhotoUrl }}" alt="Profile Image"
-                                class="rounded-circle me-2" width="30" height="30">
-                            {{ Auth::user()->email }}
+                        <a class="nav-link dropdown-toggle text-warning fw-bold d-flex justify-content-center align-items-center"
+                            href="#" id="gmailDropdown" role="button" data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                            @if (Auth::user()->profile && Auth::user()->profile->foto_profile)
+                                <img src="{{ asset('storage/' . Auth::user()->profile->foto_profile) }}" width="45px"
+                                    height="45px" class="rounded-circle"
+                                    style="object-fit: cover; border-radius: 10px; ; margin-right: 10px; ;"
+                                    alt="Profil image">
+                            @else
+                                <img src="{{ asset('storage/profile_images/default_profile.png') }}" width="45px"
+                                    class="img-fluid rounded-circle"
+                                    style="object-fit: cover; border-radius: 25px; ; margin-right: 10px;"
+                                    alt="Profil image">
+                            @endif {{ Auth::user()->email }}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end bg-dark border-3 border-primary"
                             aria-labelledby="gmailDropdown">

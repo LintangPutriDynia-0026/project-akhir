@@ -11,14 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('dashboards', function (Blueprint $table) {
+        Schema::create('profiles', function (Blueprint $table) {
             $table->id();
-            $table->text('gambar');
-            $table->string('nama_umkm');
-            $table->string('nama_owner');
-            $table->string('kota_umkm');
-            $table->string('lokasi_umkm');
-            $table->string('deskripsi');
+            $table->string('foto_profile')->nullable();
+            $table->string('ktp');
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->timestamps();
@@ -30,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('dashboards');
+        Schema::dropIfExists('profiles');
     }
 };

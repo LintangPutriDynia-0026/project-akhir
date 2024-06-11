@@ -1,4 +1,7 @@
 @extends('layout.main')
+@push('styles')
+    <link href="https://cdn.datatables.net/2.0.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+@endpush
 @section('title', 'Manage User')
 @section('content')
     <div class="content-wrapper" style="background-image: url('{{ asset('images/background.png') }}');">
@@ -58,9 +61,16 @@
                                     </div>
                                 @endif
                             </div>
-                            <!-- /.card-header -->
-                            <div class="card-body table-responsive p-0">
-                                <table class="table table-hover text-nowrap">
+
+                            <div class="d-flex justify-content-end my-2 me-2">
+                                <select name="jenis_kelamin" id="jenis_kelamin" class="form-select w-auto me-2">
+                                    <option value="">Pilih Jenis Kelamin</option>
+                                    <option value="laki-laki">laki-laki</option>
+                                    <option value="perempuan">perempuan</option>
+                                </select>
+                            </div>
+                            <div class="card-body table-responsive p-2">
+                                <table class="table table-hover text-nowrap" id="datatable" name="datatable">
                                     <thead>
                                         <tr>
                                             <th scope="col" class="text-center">No</th>
@@ -71,7 +81,6 @@
                                             <th scope="col" class="text-center">Jenis Kelamin</th>
                                             <th scope="col" class="text-center">No. WA</th>
                                             <th scope="col" class="text-center">Alamat</th>
-                                            <th scope="col" class="text-center">ktp</th>
                                             <th scope="col" class="text-center" style="width: 150px">Action</th>
                                         </tr>
                                     </thead>
@@ -96,8 +105,6 @@
                                                 @endif
                                                 <td class="text-center">{{ $user->no_wa }}</td>
                                                 <td class="text-center">{{ $user->alamat }}</td>
-                                                <td class="text-center"><img src="{{ asset('uploads/' . $user->ktp) }}"
-                                                        alt="KTP Image" style="width: 50px; height: auto;"></td>
                                                 <td class="d-flex">
                                                     <a href="{{ route('page.admin.edit', ['id' => $user->id]) }}"
                                                         class="btn btn-warning btn-sm mx-1">Update</a>
@@ -124,3 +131,125 @@
         <!-- /.content -->
     </div>
 @endsection
+
+@push('scripts')
+    <script src="https://cdn.datatables.net/2.0.7/js/dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/2.0.7/js/dataTables.bootstrap5.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            KTDatatablesDataSourceAjaxServer.init();
+        })
+        var table;
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': "{{ csrf_token() }}"
+            }
+        })
+        $.fn.dataTable.ext.errMode = 'none';
+
+        var KTDatatablesDataSourceAjaxServer = function() {
+            var initTable1 = function() {
+                table = $('#datatable');
+
+                table = table.DataTable({
+                    paging: true,
+                    responsive: true,
+                    searchDelay: 500,
+                    processing: true,
+                    serverSide: true,
+                    language: {
+                        paginate: {
+                            next: "Next",
+                            previous: "Previous"
+                        },
+                        "sSearch": "Cari",
+                        "sLengthMenu": "Show <select>" +
+                            "<option value='10'>10</option>" +
+                            "<option value='50'>50</option>" +
+                            "<option value='100'>100</option>" +
+                            "<option value='200'>200</option>" +
+                            "<option value='500'>500</option>" +
+                            "</select> entries"
+                    },
+                    ajax: {
+                        url: '{{ route('get-datatable') }}',
+                        type: "GET",
+
+                        data: function(data) {
+                            data.jenis_kelamin = $("#jenis_kelamin").val();
+                        },
+                    },
+                    lengthMenu: [10, 50, 100, 200, 500],
+                    columns: [{
+                            data: "DT_RowIndex",
+                            name: "DT_RowIndex",
+                            orderable: false,
+                            searchable: false
+                        },
+                        {
+                            data: 'nama',
+                            name: 'nama',
+                            orderable: true,
+                            searchable: true
+                        },
+                        {
+                            data: 'email',
+                            name: 'email',
+                            orderable: true,
+                            searchable: true
+                        },
+                        {
+                            data: 'password',
+                            name: 'password',
+                            orderable: false,
+                            searchable: false
+                        },
+                        {
+                            data: 'tanggal_lahir',
+                            name: 'tanggal_lahir',
+                            orderable: true,
+                            searchable: true
+                        },
+                        {
+                            data: 'jenis_kelamin',
+                            name: 'jenis_kelamin',
+                            orderable: true,
+                            searchable: true
+                        },
+                        {
+                            data: 'no_wa',
+                            name: 'no_wa',
+                            orderable: true,
+                            searchable: true
+                        },
+                        {
+                            data: 'alamat',
+                            name: 'alamat',
+                            orderable: true,
+                            searchable: true
+                        },
+                        {
+                            data: 'action',
+                            name: 'action',
+                            orderable: false,
+                            searchable: false
+                        },
+                    ]
+                });
+
+                $("#jenis_kelamin").on("change", function() {
+                    table.ajax.reload();
+                });
+
+                table.on('draw', function() {});
+            };
+
+            return {
+                init: function() {
+                    initTable1();
+                },
+            };
+        }();
+    </script>
+@endpush

@@ -11,14 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('profils', function (Blueprint $table) {
+        Schema::create('umkms', function (Blueprint $table) {
             $table->id();
-            $table->string('nama_owner');
-            $table->string('email')->unique();
-            $table->string('password');
-            $table->string('domisili');
-            $table->string('no_wa');
-            $table->string('foto');
+            $table->text('foto_umkm');
+            $table->string('nama_umkm');
+            $table->string('kota_umkm');
+            $table->string('lokasi_umkm');
+            $table->text('deskripsi')->nullable();
+            $table->string('kontak');
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->timestamps();
@@ -30,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('profils');
+        Schema::dropIfExists('umkms');
     }
 };
