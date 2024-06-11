@@ -50,7 +50,6 @@
                                     </div>
                                 @endif
                             @endforeach
-                            <!-- Tambahkan card lainnya sesuai kebutuhan -->
                         </div>
                     </div>
                 </div>
