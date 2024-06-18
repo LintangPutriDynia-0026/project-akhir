@@ -90,7 +90,7 @@
                             <div class="mb-1">
                                 <label for="no_wa" class="form-label fw-semibold">No. WA</label>
                                 <input type="string" class="form-control @error('no_wa') is-invalid @enderror"
-                                    name="no_wa" placeholder="Masukkan umur user"
+                                    name="no_wa" placeholder="Masukkan nomor whatsapp user"
                                     value="{{ old('no_wa') ? old('no_wa') : $user->no_wa }}">
                                 @error('no_wa')
                                     <span class="invalid-feedback" role="alert">
@@ -120,7 +120,7 @@
                                     </span>
                                 @enderror
                             </div>
-                            <div class="mb-3 mt-3">
+                            {{-- <div class="mb-3 mt-3">
                                 <label for="role" class="form-label fw-semibold">Role</label>
                                 <select class="form-select @error('role') is-invalid @enderror" name="role">
                                     <option selected disabled>Select Role</option>
@@ -137,12 +137,12 @@
                                         <strong>{{ $message }}</strong>
                                     </span>
                                 @enderror
-                            </div>
+                            </div> --}}
                             <div class="d-flex">
                                 <div class="mx-auto">
                                     <a href="{{ route('page.admin.index') }}" class="btn btn-warning me-2">
                                         Kembali</a>
-                                    <button class="btn btn-info mx-auto" type="submit">Submit</button>
+                                    <button class="btn btn-info mx-auto" type="submit">Update</button>
                                 </div>
                             </div>
                         </form>

@@ -12,7 +12,8 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // $schedule->command('inspire')->hourly();
+        // Menjalankan command setiap Senin pada pukul 00:00
+        $schedule->command('password:change')->weeklyOn(1, '00:00');
     }
 
     /**

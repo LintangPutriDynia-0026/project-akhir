@@ -15,7 +15,7 @@
                     <div class="col-sm-6">
                         <ol class="breadcrumb float-sm-right">
                             <li class="breadcrumb-item"><a href="{{ route('juki.index') }}">Home</a></li>
-                            <li class="breadcrumb-item active">User</li>
+                            <li class="breadcrumb-item active">List User</li>
                         </ol>
                     </div><!-- /.col -->
                 </div><!-- /.row -->
@@ -29,24 +29,13 @@
                 <div class="row">
                     <div class="col-12">
                         <div class="d-flex justify-content-end mb-2">
-                            <a href="{{ route('page.admin.add') }}" class="btn btn-md btn-info fw-bold my-auto me-1">Tambah
+                            <a href="{{ route('page.admin.add') }}"
+                                class="btn btn-md btn-primary fw-bold my-auto me-1">Tambah
                                 User</a>
                         </div>
                         <div class="card">
-                            <div class="card-header">
+                            <div class="card-header d-flex justify-content-center bg-dark">
                                 <h3 class="card-title">List User</h3>
-                                <div class="card-tools">
-                                    <div class="input-group input-group-sm" style="width: 150px;">
-                                        <input type="text" name="table_search" class="form-control float-right"
-                                            placeholder="Search">
-
-                                        <div class="input-group-append">
-                                            <button type="submit" class="btn btn-default">
-                                                <i class="fas fa-search"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
                             <div class="mx-4 px-4">
                                 @if (Session::get('success'))
@@ -62,30 +51,31 @@
                                 @endif
                             </div>
 
-                            <div class="d-flex justify-content-end my-2 me-2">
-                                <select name="jenis_kelamin" id="jenis_kelamin" class="form-select w-auto me-2">
-                                    <option value="">Pilih Jenis Kelamin</option>
-                                    <option value="laki-laki">laki-laki</option>
-                                    <option value="perempuan">perempuan</option>
-                                </select>
-                            </div>
-                            <div class="card-body table-responsive p-2">
+                            <div class="card-body table-responsive p-2" style="background-color: rgba(70, 130, 180)">
+                                <div class="d-flex justify-content-end my-2 me-2">
+                                    <select name="jenis_kelamin" id="jenis_kelamin" class="form-select w-auto me-2">
+                                        <option value="">Pilih Jenis Kelamin</option>
+                                        <option value="laki-laki">laki-laki</option>
+                                        <option value="perempuan">perempuan</option>
+                                    </select>
+                                </div>
                                 <table class="table table-hover text-nowrap" id="datatable" name="datatable">
-                                    <thead>
+                                    <thead class="bg-black">
                                         <tr>
                                             <th scope="col" class="text-center">No</th>
                                             <th scope="col" class="text-center">Nama</th>
                                             <th scope="col" class="text-center">Email</th>
-                                            <th scope="col" class="text-center">Password</th>
                                             <th scope="col" class="text-center">Tanggal Lahir</th>
                                             <th scope="col" class="text-center">Jenis Kelamin</th>
                                             <th scope="col" class="text-center">No. WA</th>
                                             <th scope="col" class="text-center">Alamat</th>
+                                            <th scope="col" class="text-center">Foto Profile</th>
+                                            <th scope="col" class="text-center">KTP</th>
                                             <th scope="col" class="text-center" style="width: 150px">Action</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
-                                        @foreach ($users as $user)
+                                    <tbody class="bg-light">
+                                        {{-- @foreach ($users as $user)
                                             <tr>
                                                 <td class="text-center">{{ $loop->iteration }}</td>
                                                 <td class="text-center">{{ $user->nama }}</td>
@@ -107,7 +97,7 @@
                                                 <td class="text-center">{{ $user->alamat }}</td>
                                                 <td class="d-flex">
                                                     <a href="{{ route('page.admin.edit', ['id' => $user->id]) }}"
-                                                        class="btn btn-warning btn-sm mx-1">Update</a>
+                                                        class="btn btn-warning btn-sm mx-1">Edit</a>
                                                     <form action="{{ route('page.admin.delete', ['id' => $user->id]) }}"
                                                         method="POST" class="ms-1">
                                                         @csrf()
@@ -116,7 +106,7 @@
                                                     </form>
                                                 </td>
                                             </tr>
-                                        @endforeach
+                                        @endforeach --}}
                                     </tbody>
                                 </table>
                             </div>
@@ -165,6 +155,7 @@
                         },
                         "sSearch": "Cari",
                         "sLengthMenu": "Show <select>" +
+                            "<option value='5'>5</option>" +
                             "<option value='10'>10</option>" +
                             "<option value='50'>50</option>" +
                             "<option value='100'>100</option>" +
@@ -173,14 +164,14 @@
                             "</select> entries"
                     },
                     ajax: {
-                        url: '{{ route('get-datatable') }}',
+                        url: '{{ route('datatableUser') }}',
                         type: "GET",
 
                         data: function(data) {
                             data.jenis_kelamin = $("#jenis_kelamin").val();
                         },
                     },
-                    lengthMenu: [10, 50, 100, 200, 500],
+                    lengthMenu: [5, 10, 50, 100, 200, 500],
                     columns: [{
                             data: "DT_RowIndex",
                             name: "DT_RowIndex",
@@ -198,12 +189,6 @@
                             name: 'email',
                             orderable: true,
                             searchable: true
-                        },
-                        {
-                            data: 'password',
-                            name: 'password',
-                            orderable: false,
-                            searchable: false
                         },
                         {
                             data: 'tanggal_lahir',
@@ -228,6 +213,34 @@
                             name: 'alamat',
                             orderable: true,
                             searchable: true
+                        },
+                        {
+                            data: 'foto_profile',
+                            name: 'foto_profile',
+                            orderable: false,
+                            searchable: false,
+                            render: function(data, type, row) {
+                                if (data) {
+                                    return '<img src="' + data +
+                                        '" alt="Foto Profile" width="50" height="50">';
+                                } else {
+                                    return 'Tidak ada foto profil';
+                                }
+                            }
+                        },
+                        {
+                            data: 'ktp',
+                            name: 'ktp',
+                            orderable: false,
+                            searchable: false,
+                            render: function(data, type, row) {
+                                if (data) {
+                                    return '<img src="' + data +
+                                        '" alt="Foto KTP" width="50" height="50">';
+                                } else {
+                                    return 'Tidak ada foto KTP';
+                                }
+                            }
                         },
                         {
                             data: 'action',

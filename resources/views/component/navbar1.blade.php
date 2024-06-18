@@ -15,8 +15,8 @@
                 <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
                     <!-- Menu Halaman Home -->
                     <li class="nav-item">
-                        <a class="nav-link active text-white fw-bold" aria-current="page"
-                            href="{{ route('juki.index') }}">Home</a>
+                        <a class="nav-link {{ Request::routeIs('juki.index') ? 'active text-info fw-bold' : 'text-white fw-bold' }}"
+                            aria-current="page" href="{{ route('juki.index') }}">Home</a>
                     </li>
                     <!-- Menampilkan Menu Halaman UMKM Setelah Login-->
                     @auth
@@ -31,12 +31,12 @@
                     </li>
                     <!-- Menu Halaman Contact Us -->
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle text-white fw-bold" href="#" id="navbarDropdown"
+                        <a class="nav-link text-white fw-bold dropdown-toggle" href="#" id="navbarDropdown"
                             role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             Contact Us
                         </a>
                         <ul class="dropdown-menu bg-dark border-3 border-primary" aria-labelledby="navbarDropdown">
-                            <li><a class="dropdown-item" href="https://www.instagram.com/linputri_dynia912/"
+                            <li><a class="dropdown-item" href="https://www.instagram.com/juki_officially/"
                                     target="_blank" style="color: rgb(230, 51, 170);">Instagram</a></li>
                             <li><a class="dropdown-item" href="https://www.facebook.com/lintang.p.dynia/"
                                     target=" _blank" style="color: rgb(96, 96, 202);">Facebook</a></li>
@@ -59,8 +59,8 @@
                     @auth
                         @if (Auth::user()->roles[0]->name == 'superadmin')
                             <li class="nav-item">
-                                <a class="nav-link active text-info fw-bold" aria-current="page"
-                                    href="{{ route('admin.dashboard') }}">Admin
+                                <a class="nav-link text-danger fw-bold" aria-current="page"
+                                    href="{{ route('page.admin.index') }}">Admin
                                     Dashboard</a>
                             </li>
                         @endif
@@ -76,7 +76,7 @@
                                 @if (Auth::user()->profile && Auth::user()->profile->foto_profile)
                                     <img src="{{ asset('storage/' . Auth::user()->profile->foto_profile) }}" width="45px"
                                         height="45px" class="rounded-circle"
-                                        style="object-fit: cover; border-radius: 10px; ; margin-right: 10px; ;"
+                                        style="object-fit: cover; border-radius: 10px; ; margin-right: 10px;"
                                         alt="Profil image">
                                 @else
                                     <img src="{{ asset('storage/profile_images/default_profile.png') }}" width="45px"
@@ -85,7 +85,7 @@
                                         alt="Profil image">
                                 @endif {{ Auth::user()->email }}
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-end bg-dark border-3 border-primary"
+                            <ul class="dropdown-menu dropdown-menu-end bg-dark border-3 border-white"
                                 aria-labelledby="gmailDropdown">
                                 <!-- Menu Halaman Dashboard -->
                                 <li><a class="dropdown-item text-white {{ Request::is('dashboard') ? 'active' : '' }}"
@@ -94,7 +94,8 @@
                                 </li>
                                 <!-- Menu Halaman Profil -->
                                 <li><a class="dropdown-item text-white {{ Request::is('profil') ? 'active' : '' }}"
-                                        href="{{ route('profil') }}"><i class="bi bi-person me-2"></i>Profil</a></li>
+                                        href="{{ route('profil') }}"><i class="bi bi-person-circle me-2"></i>Profil</a>
+                                </li>
                                 <!-- Menu Halaman Loker -->
                                 <li><a class="dropdown-item text-white {{ Request::is('loker') ? 'active' : '' }}"
                                         href="{{ route('loker') }}"><i class="bi bi-briefcase me-2"></i>Loker</a></li>

@@ -71,14 +71,23 @@
                                     Password</label>
                                 <input type="password" class="form-control" name="password_confirmation"
                                     placeholder="Masukkan konfirmasi password user">
+                                @error('password_confirmation')
+                                    <span class="invalid-feedback" role="alert">
+                                        <strong>{{ $message }}</strong>
+                                    </span>
+                                @enderror
                             </div>
                             <div class="mb-1 mt-3">
                                 <label for="jenis_kelamin" class="form-label fw-semibold">Jenis Kelamin</label>
                                 <select class="form-select @error('jenis_kelamin') is-invalid @enderror"
                                     name="jenis_kelamin">
-                                    <option selected disabled>Select Jenis Kelamin</option>
-                                    <option value="laki-laki">LAki-laki</option>
-                                    <option value="perempuan">Perempuan</option>
+                                    <option value="0" {{ old('jenis_kelamin') == '0' ? 'selected' : '' }}>Select Jenis
+                                        Kelamin</option>
+                                    <option value="laki-laki" {{ old('jenis_kelamin') == 'laki-laki' ? 'selected' : '' }}>
+                                        Laki-laki</option>
+                                    <option value="perempuan" {{ old('jenis_kelamin') == 'perempuan' ? 'selected' : '' }}>
+                                        Perempuan
+                                    </option>
                                 </select>
                                 @error('jenis_kelamin')
                                     <span class="invalid-feedback" role="alert">
@@ -117,7 +126,7 @@
                                     </span>
                                 @enderror
                             </div>
-                            <div class="mb-1 mt-3 mb-3">
+                            {{-- <div class="mb-1 mt-3 mb-3">
                                 <label for="role" class="form-label fw-semibold">Role</label>
                                 <select class="form-select @error('role') is-invalid @enderror" name="role">
                                     <option selected disabled>Select Role</option>
@@ -129,10 +138,10 @@
                                         <strong>{{ $message }}</strong>
                                     </span>
                                 @enderror
-                            </div>
+                            </div> --}}
                             <div class="d-flex">
-                                <div class="mx-auto">
-                                    <a href="{{ route('page.admin.index') }}" class="btn btn-warning me-2">
+                                <div class="mx-auto mt-2">
+                                    <a href="{{ route('page.admin.dashboard') }}" class="btn btn-warning me-2">
                                         Kembali</a>
                                     <button class="btn btn-info" type="submit">Submit</button>
                                 </div>

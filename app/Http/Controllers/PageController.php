@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Profile;
 use App\Models\Umkm;
 use App\Models\Loker;
+use App\Models\Produk;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -16,6 +17,11 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Spatie\Permission\Models\Role;
+use App\Http\Resources\UmkmResource;
+use App\Http\Resources\ProdukResource;
+use Carbon\Carbon;
+
 
 class PageController extends Controller
 {
@@ -25,13 +31,66 @@ class PageController extends Controller
         return view('page.juki.home', ['navbar' => 'navbar1', 'footer' => 'footer']);
     }
 
+    // public function showUmkm()
+    // {
+    //     // Mengambil semua data UMKM dari database
+    //     $umkms = Umkm::latest()->get();
+
+    //     $kota_umkm = '';
+
+    //     // Mengirim data UMKM ke tampilan 'umkm.blade.php'
+    //     return view('page.juki.umkm', ['navbar' => 'navbar2', 'footer' => 'footer', 'umkms' => $umkms, 'kota_umkm' => $kota_umkm]);
+    // }
+
     public function showUmkm()
     {
-        // Mengambil semua data UMKM dari database
-        $umkms = Umkm::all();
+        $umkms = Umkm::latest()->get();
 
-        // Mengirim data UMKM ke tampilan 'umkm.blade.php'
-        return view('page.juki.umkm', ['navbar' => 'navbar2', 'footer' => 'footer', 'umkms' => $umkms]);
+        $kota_umkm = '';
+
+        return view('page.juki.umkm', [
+            'navbar' => 'navbar2',
+            'footer' => 'footer',
+            'umkms' => UmkmResource::collection($umkms),
+            'kota_umkm' => $kota_umkm,
+        ]);
+    }
+
+    // public function produkResource($id)
+    // {
+    //     $umkm = Umkm::with('user', 'produk')->findOrFail($id);
+
+    //     // Mengirim data UMKM ke tampilan 'umkm.blade.php'
+    //     return new UmkmResource($umkm);
+    // }
+
+    public function detailUmkm($id)
+    {
+        // Mengambil data UMKM berdasarkan ID
+        $umkm = Umkm::with('user', 'produk')->findOrFail($id);
+
+        // Mengirim data UMKM ke tampilan 'detailUmkm.blade.php'
+        return view('page.juki.detailUmkm', ['navbar' => 'navbar2', 'footer' => 'footer', 'umkm' => new UmkmResource($umkm)]);
+    }
+
+    // public function detailUmkm($id)
+    // {
+    //     // Mengambil data UMKM berdasarkan ID
+    //     $umkm = Umkm::findOrFail($id);
+
+    //     // Mengambil produk terkait UMKM berdasarkan UMKM ID
+    //     $produks = Produk::where('umkm_id', $umkm->id)->get();
+
+    //     // Mengirim data UMKM ke tampilan 'umkm.blade.php'
+    //     return view('page.juki.detailUmkm', ['navbar' => 'navbar2', 'footer' => 'footer', 'umkm' => $umkm, 'produks' => $produks]);
+    // }
+
+    // Metode untuk pencarian UMKM berdasarkan kota
+    public function searchUmkm(Request $request)
+    {
+        $kota_umkm = $request->input('kota_umkm');
+        $umkms = UMKM::where('kota_umkm', 'LIKE', '%' . $kota_umkm . '%')->get();
+        return response()->json(['umkms' => $umkms, 'kota_umkm' => $kota_umkm,]);
     }
 
     public function showDashboard()
@@ -54,22 +113,45 @@ class PageController extends Controller
             'foto_umkm' => 'required|image|max:2048',
         ]);
 
-        // Upload gambar
-        $fileName = time() . '_' . $request->foto_umkm->getClientOriginalName();
-        $request->foto_umkm->storeAs('umkm_images', $fileName, 'public');
+        // Check if user already has a UMKM
+        if (auth()->user()->umkm) {
+            return redirect()->route('dashboard')->with('error', 'Anda hanya dapat memiliki satu UMKM.');
+        }
 
-        // Simpan data UMKM
-        UMKM::create([
-            'nama_umkm' => $request->nama_umkm,
-            'kota_umkm' => $request->kota_umkm,
-            'lokasi_umkm' => $request->lokasi_umkm,
-            'deskripsi' => $request->deskripsi,
-            'kontak' => $request->kontak,
-            'foto_umkm' => $fileName,
-            'user_id' => auth()->user()->id,
-        ]);
+        DB::beginTransaction();
 
-        return redirect()->route('dashboard')->with('success', 'UMKM berhasil ditambahkan.');
+        try {
+            // Upload gambar
+            $fileName = time() . '_' . $request->foto_umkm->getClientOriginalName();
+            $request->foto_umkm->storeAs('umkm_images', $fileName, 'public');
+
+            // Simpan data UMKM
+            UMKM::create([
+                'nama_umkm' => $request->nama_umkm,
+                'kota_umkm' => $request->kota_umkm,
+                'lokasi_umkm' => $request->lokasi_umkm,
+                'deskripsi' => $request->deskripsi,
+                'kontak' => $request->kontak,
+                'foto_umkm' => $fileName,
+                'user_id' => auth()->user()->id,
+            ]);
+
+            // Commit transaksi
+            DB::commit();
+
+            return redirect()->route('dashboard')->with('success', 'UMKM berhasil ditambahkan.');
+
+        } catch (\Exception $e) {
+            // Rollback transaksi jika terjadi kesalahan
+            DB::rollBack();
+
+            // Hapus gambar yang sudah terupload jika terjadi kesalahan
+            if (Storage::exists('public/umkm_images/' . $fileName)) {
+                Storage::delete('public/umkm_images/' . $fileName);
+            }
+
+            return redirect()->route('dashboard')->with('error', 'Gagal menambahkan UMKM: ' . $e->getMessage());
+        }
     }
 
     public function editUmkm($id)
@@ -90,51 +172,252 @@ class PageController extends Controller
             'foto_umkm' => 'nullable|image|max:2048', // nullable untuk tidak wajib mengupload ulang
         ]);
 
-        // Cari data UMKM berdasarkan ID
-        $umkm = Umkm::findOrFail($id);
+        DB::beginTransaction();
 
-        // Jika ada file foto yang diupload
-        if ($request->hasFile('foto_umkm')) {
-            // Hapus file foto lama jika ada
-            if ($umkm->foto_umkm && Storage::exists('public/umkm_images/' . $umkm->foto_umkm)) {
-                Storage::delete('public/umkm_images/' . $umkm->foto_umkm);
+        try {
+            // Cari data UMKM berdasarkan ID
+            $umkm = Umkm::findOrFail($id);
+
+            // Jika ada file foto yang diupload
+            if ($request->hasFile('foto_umkm')) {
+                // Hapus file foto lama jika ada
+                if ($umkm->foto_umkm && Storage::exists('public/umkm_images/' . $umkm->foto_umkm)) {
+                    Storage::delete('public/umkm_images/' . $umkm->foto_umkm);
+                }
+
+                // Upload file foto baru
+                $fileName = time() . '_' . $request->foto_umkm->getClientOriginalName();
+                $request->foto_umkm->storeAs('public/umkm_images', $fileName);
+
+                // Update nama file foto di database
+                $umkm->foto_umkm = $fileName;
             }
 
-            // Upload file foto baru
-            $fileName = time() . '_' . $request->foto_umkm->getClientOriginalName();
-            $request->foto_umkm->storeAs('public/umkm_images', $fileName);
+            // Update data UMKM di database
+            $umkm->update([
+                'nama_umkm' => $request->nama_umkm,
+                'kota_umkm' => $request->kota_umkm,
+                'lokasi_umkm' => $request->lokasi_umkm,
+                'deskripsi' => $request->deskripsi,
+                'kontak' => $request->kontak,
+            ]);
 
-            // Update nama file foto di database
-            $umkm->foto_umkm = $fileName;
+            // Commit transaksi
+            DB::commit();
+
+            return redirect()->route('dashboard')->with('success', 'UMKM berhasil diupdate.');
+
+        } catch (\Exception $e) {
+            // Rollback transaksi jika terjadi kesalahan
+            DB::rollBack();
+            return redirect()->route('dashboard')->with('error', 'Gagal mengupdate UMKM: ' . $e->getMessage());
         }
 
-        // Update data UMKM di database
-        $umkm->update([
-            'nama_umkm' => $request->nama_umkm,
-            'kota_umkm' => $request->kota_umkm,
-            'lokasi_umkm' => $request->lokasi_umkm,
-            'deskripsi' => $request->deskripsi,
-            'kontak' => $request->kontak,
-        ]);
-
-        return redirect()->route('dashboard')->with('success', 'UMKM berhasil diupdate.');
     }
 
     public function destroyUmkm($id)
     {
-        // Find UMKM dengan ID
-        $umkm = Umkm::findOrFail($id);
-    
-        // Delete UMKM
-        $umkm->delete();
+        // Mulai transaksi
+        DB::beginTransaction();
 
-        return redirect()->route('dashboard')->with('success', 'UMKM berhasil dihapus.');
+        try {
+            // Find UMKM dengan ID
+            $umkm = Umkm::findOrFail($id);
+
+            // Hapus file foto jika ada
+            if ($umkm->foto_umkm && Storage::exists('public/umkm_images/' . $umkm->foto_umkm)) {
+                Storage::delete('public/umkm_images/' . $umkm->foto_umkm);
+            }
+
+            // Delete UMKM
+            $umkm->delete();
+
+            // Commit transaksi
+            DB::commit();
+
+            return redirect()->route('dashboard')->with('success', 'UMKM berhasil dihapus.');
+
+        } catch (\Exception $e) {
+            // Rollback transaksi jika terjadi kesalahan
+            DB::rollBack();
+            return redirect()->route('dashboard')->with('error', 'Gagal menghapus UMKM: ' . $e->getMessage());
+        }
     }
 
-    public function Profil()
+    public function like(Request $request)
+    {
+        $likeableId = $request->input('likeable_id');
+        $likeableType = $request->input('likeable_type');
+
+        $user = Auth::user();
+
+        if ($likeableType === 'umkm') {
+            $likeable = Umkm::findOrFail($likeableId);
+        } elseif ($likeableType === 'produk') {
+            $likeable = Produk::findOrFail($likeableId);
+        } else {
+            return response()->json(['status' => 'error', 'message' => 'Invalid likeable type'], 400);
+        }
+
+        if ($likeable->likes()->where('user_id', $user->id)->exists()) {
+            $likeable->likes()->where('user_id', $user->id)->delete();
+            $status = 'unliked';
+            $message = ($likeableType === 'umkm') ? 'UMKM diunlike' : 'Produk diunlike';
+        } else {
+            $likeable->likes()->create(['user_id' => $user->id]);
+            $status = 'liked';
+            $message = ($likeableType === 'umkm') ? 'UMKM dilike' : 'Produk dilike';
+        }
+
+        $likesCount = $likeable->likes()->count();
+
+        return response()->json([
+            'status' => $status,
+            'likes_count' => $likesCount,
+            'message' => $message,
+        ]);
+    }
+
+    public function showProduk()
+    {
+        $produks = Produk::all();
+        return view('page.juki.produk', ['navbar' => 'navbar4', 'footer' => 'footer', 'produks' => $produks]);
+    }
+
+    public function addProduk()
+    {
+        return view('page.juki.addProduk', ['navbar' => 'navbar4', 'footer' => 'footer']);
+    }
+
+    public function storeProduk(Request $request)
+    {
+        $request->validate([
+            'nama_produk' => 'required|string|max:255',
+            'harga' => 'required|numeric|min:0',
+            'foto_produk' => 'required|image|max:2048',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            $fileName = time() . '_' . $request->foto_produk->getClientOriginalName();
+            $request->foto_produk->storeAs('produk_images', $fileName, 'public');
+
+            Produk::create([
+                'nama_produk' => $request->nama_produk,
+                'harga' => $request->harga,
+                'foto_produk' => $fileName,
+                'umkm_id' => auth()->user()->umkm->id,
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('produk')->with('success', 'Produk berhasil ditambahkan.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->route('produk')->with('error', 'Gagal menambahkan produk: ' . $e->getMessage());
+        }
+    }
+
+    public function editProduk($id)
+    {
+        $produk = Produk::findOrFail($id);
+        return view('page.juki.editProduk', ['navbar' => 'navbar4', 'footer' => 'footer', 'produk' => $produk]);
+    }
+
+    public function updateProduk(Request $request, $id)
+    {
+        $request->validate([
+            'nama_produk' => 'required|string|max:255',
+            'harga' => 'required|numeric|min:0',
+            'foto_produk' => 'nullable|image|max:2048',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            $produk = Produk::findOrFail($id);
+
+            if ($request->hasFile('foto_produk')) {
+                if ($produk->foto_produk && Storage::exists('public/produk_images/' . $produk->foto_produk)) {
+                    Storage::delete('public/produk_images/' . $produk->foto_produk);
+                }
+                $fileName = time() . '_' . $request->foto_produk->getClientOriginalName();
+                $request->foto_produk->storeAs('produk_images', $fileName, 'public');
+                $produk->foto_produk = $fileName;
+            }
+
+            $produk->nama_produk = $request->nama_produk;
+            $produk->harga = $request->harga;
+            $produk->save();
+
+            DB::commit();
+
+            return redirect()->route('produk')->with('success', 'Produk berhasil diupdate.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->route('produk')->with('error', 'Gagal mengupdate produk: ' . $e->getMessage());
+        }
+    }
+
+    public function destroyProduk($id)
+    {
+        DB::beginTransaction();
+
+        try {
+            $produk = Produk::findOrFail($id);
+            if ($produk->foto_produk && Storage::exists('public/produk_images/' . $produk->foto_produk)) {
+                Storage::delete('public/produk_images/' . $produk->foto_produk);
+            }
+            $produk->delete();
+
+            DB::commit();
+
+            return redirect()->route('produk')->with('success', 'Produk berhasil dihapus.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->route('produk')->with('error', 'Gagal menghapus produk: ' . $e->getMessage());
+        }
+    }
+
+    public function datatableProduk(Request $request)
+    {
+        if ($request->ajax()) {
+            try {
+                $data = Produk::query()->get();
+                
+                return DataTables::of($data)
+                    ->addIndexColumn()
+                    ->addColumn('foto_produk', function ($row) {
+                        return asset('storage/produk_images/' . $row->foto_produk);
+                    })
+                    ->addColumn('action', function($row){
+                        $editUrl = route('produk.edit', ['id' => $row->id]);
+                        $deleteUrl = route('produk.destroy', ['id' => $row->id]);
+
+                        $actionBtn = '<div class="d-flex justify-content-center">
+                                        <a href="'.$editUrl.'" class="edit btn btn-warning btn-sm fw-semibold"><i class="bi bi-pen-fill"></i> Edit</a>
+                                            <form action="'.$deleteUrl.'" method="POST" class="d-inline-block ms-1">
+                                                '.csrf_field().' <button class="btn btn-danger btn-sm fw-semibold" type="submit"><i class="bi bi-trash3-fill"></i> Delete</button>
+                                            </form>
+                                    </div>';
+                        return $actionBtn;
+                    })
+                    ->rawColumns(['action'])
+                    ->make(true);
+            } catch (\Exception $e) {
+                Log::error($e);
+                return response()->json(['error' => 'Something went wrong!'], 500);
+            }
+        }
+        return abort(404);
+    }
+
+    public function showProfil()
     {
         $user = Auth::user();
-        $profile = $user->profile; return view('page.juki.profil', [ 'user' => $user, 'profile' => $profile, 'navbar' => 'navbar4', 'footer' => 'footer' ]);
+        $profile = $user->profile;
+        return view('page.juki.profil', [ 'user' => $user, 'profile' => $profile, 'navbar' => 'navbar4', 'footer' => 'footer' ]);
     }
 
     public function updateProfil(Request $request)
@@ -159,7 +442,7 @@ class PageController extends Controller
             'password' => $request->filled('password') ? 'required|min:8|confirmed' : '',
             'alamat' => 'required|string|max:255',
             'no_wa' => 'required|string|min:0|max:15',
-            'ktp' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'ktp' => 'image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
         if ($validator->fails()) {
@@ -168,51 +451,67 @@ class PageController extends Controller
                 ->withInput();
         }
 
-        // Update user data
-        $userData = [
-            'nama' => $request->nama,
-            'email' => $request->email,
-            'alamat' => $request->alamat,
-            'no_wa' => $request->no_wa,
-        ];
+        // Check apakah perubahan password diperbolehkan (setiap seminggu sekali)
+        $lastPasswordChange = $user->password_changed_at;
+        $oneWeekAgo = now()->subWeek();
 
-        if ($request->filled('password')) {
-            $userData['password'] = Hash::make($request->password);
+        if ($lastPasswordChange !== null && $lastPasswordChange >= $oneWeekAgo && $request->filled('password')) {
+            return redirect()->route('profil')->with('error', 'Anda hanya dapat mengubah profile sekali dalam seminggu.');
         }
 
-        // Save user data menggunakan DB::table
-        $userSaved = DB::table('users')->where('id', $user->id)->update($userData);
+        DB::beginTransaction();
 
-        if (!$userSaved) {
-            return redirect()->route('profil')->with('error', 'Gagal memperbarui profil pengguna');
-        }
+        try {
+            // Update user data
+            $userData = [
+                'nama' => $request->nama,
+                'email' => $request->email,
+                'alamat' => $request->alamat,
+                'no_wa' => $request->no_wa,
+            ];
 
-        // Update profile data
-        if ($request->hasFile('foto_profile')) {
-            if ($profile->foto_profile) {
-                Storage::delete('public/' . $profile->foto_profile);
+            if ($request->filled('password')) {
+                $userData['password'] = Hash::make($request->password);
+                $userData['password_changed_at'] = Carbon::now();
             }
-            $foto_profile = $request->file('foto_profile');
-            $foto_profile_path = $foto_profile->store('public/profile_images');
-            $profile->foto_profile = str_replace('public/', '', $foto_profile_path);
-        }
 
-        if ($request->hasFile('ktp')) {
-            if ($profile->ktp) {
-                Storage::delete('public/' . $profile->ktp);
+            // Save user data
+            $userSaved = DB::table('users')->where('id', $user->id)->update($userData);
+            
+            if (!$userSaved) {
+                throw new \Exception('Gagal memperbarui data user');
             }
-            $ktp = $request->file('ktp');
-            $ktp_path = $ktp->store('public/ktps');
-            $profile->ktp = str_replace('public/', '', $ktp_path);
-        }
 
-        // Save profile data
-        $profileSaved = $profile->save();
+            // Update profile data
+            if ($request->hasFile('foto_profile')) {
+                if ($profile->foto_profile) {
+                    Storage::delete('public/' . $profile->foto_profile);
+                }
+                $foto_profile = $request->file('foto_profile');
+                $foto_profile_path = $foto_profile->store('public/profile_images');
+                $profile->foto_profile = str_replace('public/', '', $foto_profile_path);
+            }
 
-        if ($profileSaved) {
-            return redirect()->route('profil')->with('success', 'Profil berhasil diperbarui');
-        } else {
-            return redirect()->route('profil')->with('error', 'Gagal memperbarui profil');
+            if ($request->hasFile('ktp')) {
+                if ($profile->ktp) {
+                    Storage::delete('public/' . $profile->ktp);
+                }
+                $ktp = $request->file('ktp');
+                $ktp_path = $ktp->store('public/ktps');
+                $profile->ktp = str_replace('public/', '', $ktp_path);
+            }
+
+            // Save profile data
+            if (!$profile->save()) {
+                throw new \Exception('Gagal memperbarui profile');
+            }
+
+            DB::commit();
+            return redirect()->route('profil')->with('success', 'Profile berhasil diperbarui');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->route('profil')->with('error', 'Gagal memperbarui profile: ' . $e->getMessage());
         }
     }
 
@@ -233,15 +532,37 @@ class PageController extends Controller
             'kualifikasi' => 'required|string|max:255',
         ]);
 
-        // Menyimpan data Loker
-        Loker::create([
-            'posisi_loker' => $request->posisi_loker,
-            'jumlah_loker' => $request->jumlah_loker,
-            'kualifikasi' => $request->kualifikasi,
-            'user_id' => Auth::id(),
-        ]);
+        // Authenticated user UMKM
+        $umkm = Umkm::where('user_id', auth()->id())->first();
+        if (!$umkm) {
+            return redirect()->route('loker')->with('error', 'Tambahkan data umkm terlebih dahulu.');
+        }
 
-        return redirect()->route('loker')->with('success', 'Loker berhasil ditambahkan.');
+        Log::info('UMKM ID: ' . $umkm->id);
+
+        // Check if user already has a Loker
+        if (auth()->user()->loker) {
+            return redirect()->route('loker')->with('error', 'Anda hanya dapat memiliki satu loker.');
+        }
+
+        DB::beginTransaction();
+
+        try {
+            // Menyimpan data Loker
+            Loker::create([
+                'posisi_loker' => $request->posisi_loker,
+                'jumlah_loker' => $request->jumlah_loker,
+                'kualifikasi' => $request->kualifikasi,
+                'user_id' => Auth::id(),
+                'umkm_id' => $umkm->id,
+            ]);
+
+            DB::commit();
+            return redirect()->route('loker')->with('success', 'Loker berhasil ditambahkan.');
+        } catch (\Exception $e) {
+            DB::rollback();
+            return redirect()->route('loker')->with('error', 'Gagal menambahkan loker: ' . $e->getMessage());
+        }
     }
 
     public function editLoker($id)
@@ -259,28 +580,38 @@ class PageController extends Controller
             'kualifikasi' => 'required|string|max:255',
         ]);
 
-        // Find Loker record dengan id
-        $loker = Loker::findOrFail($id);
+        DB::beginTransaction();
 
-        // Update Loker record
-        $loker->update([
-            'posisi_loker' => $request->posisi_loker,
-            'jumlah_loker' => $request->jumlah_loker,
-            'kualifikasi' => $request->kualifikasi,
-        ]);
+        try {
+            // Update Loker record
+            Loker::findOrFail($id)->update([
+                'posisi_loker' => $request->posisi_loker,
+                'jumlah_loker' => $request->jumlah_loker,
+                'kualifikasi' => $request->kualifikasi,
+            ]);
 
-        return redirect()->route('loker')->with('success', 'Loker berhasil diperbarui.');
+            DB::commit();
+            return redirect()->route('loker')->with('success', 'Loker berhasil diperbarui.');
+        } catch (\Exception $e) {
+            DB::rollback();
+            return redirect()->route('loker')->with('error', 'Gagal memperbarui loker: ' . $e->getMessage());
+        }
     }
 
     public function destroyLoker($id)
     {
-        // Find UMKM dengan ID
-        $loker = Loker::findOrFail($id);
-    
-        // Delete UMKM
-        $loker->delete();
+        DB::beginTransaction();
 
-        return redirect()->route('loker')->with('success', 'Loker berhasil dihapus.');
+        try {
+            // Find Loker dengan ID dan hapus
+            Loker::findOrFail($id)->delete();
+
+            DB::commit();
+            return redirect()->route('loker')->with('success', 'Loker berhasil dihapus.');
+        } catch (\Exception $e) {
+            DB::rollback();
+            return redirect()->route('loker')->with('error', 'Gagal menghapus loker: ' . $e->getMessage());
+        }
     }
 
     public function about()
@@ -291,21 +622,42 @@ class PageController extends Controller
     public function infoLoker()
     {
         $lokers = Loker::join('umkms', 'umkms.user_id', '=', 'lokers.user_id')
-                   ->select('lokers.*', 'umkms.nama_umkm', 'umkms.kota_umkm', 'umkms.lokasi_umkm', 'umkms.foto_umkm')
-                   ->get();
+            ->select('lokers.*', 'umkms.nama_umkm', 'umkms.kota_umkm', 'umkms.lokasi_umkm', 'umkms.foto_umkm')
+            ->latest('lokers.created_at')
+            ->get();
+        
+        $kota_umkm = '';
 
-        return view('page.juki.info-loker', ['navbar' => 'navbar2', 'footer' => 'footer', 'lokers' => $lokers]);
+        return view('page.juki.info-loker', ['navbar' => 'navbar2', 'footer' => 'footer', 'lokers' => $lokers, 'kota_umkm' => $kota_umkm]);
+    }
+
+    public function detailLoker($id)
+    {
+        $loker = Loker::findOrFail($id);
+        $umkm = Umkm::with('user.profile')->findOrFail($loker->umkm_id);
+
+        return view('page.juki.detailLoker', ['navbar' => 'navbar4', 'footer' => 'footer', 'umkm' => $umkm, 'loker' => $loker]);
+    }
+
+    public function searchLoker(Request $request)
+    {
+        $kota_umkm = $request->input('kota_umkm');
+        Log::info('Kota UMKM: ' . $kota_umkm);
+
+        // Join lokers with umkms and users
+        $lokers = Loker::join('umkms', 'lokers.umkm_id', '=', 'umkms.id')
+            ->join('users', 'lokers.user_id', '=', 'users.id')
+            ->where('umkms.kota_umkm', 'LIKE', '%' . $kota_umkm . '%')
+            ->select('lokers.*', 'umkms.kota_umkm', 'umkms.nama_umkm', 'umkms.foto_umkm', 'umkms.lokasi_umkm', 'users.email as user_email')
+            ->get();
+        Log::info('Lokers: ' . $lokers);
+
+        return response()->json(['lokers' => $lokers, 'kota_umkm' => $kota_umkm]);
     }
 
     public function service()
     {
         return view('page.juki.service', ['navbar' => 'navbar3', 'footer' => 'footer']);
-    }
-
-    // Admin
-    public function admin()
-    {
-        return view('page.admin.dashboard');
     }
 
     // Users
@@ -329,7 +681,6 @@ class PageController extends Controller
             'email' => 'required|email|max:255|unique:users',
             'password' => 'required|min:8|confirmed',
             'alamat' => 'required|string|max:255',
-            'role' => 'required|in:superadmin,user',
             'tanggal_lahir' => 'required|date',
             'jenis_kelamin' => 'required|in:laki-laki,perempuan',
             'no_wa' => 'required|string|min:0|max:15',
@@ -341,22 +692,37 @@ class PageController extends Controller
                 ->withInput();
         }
 
-        $user = User::create([
-            'nama' => $request->nama,
-            'email' => $request->email,
-            'password' => bcrypt($request->password),
-            'alamat' => $request->alamat,
-            'tanggal_lahir' => $request->tanggal_lahir,
-            'jenis_kelamin' => $request->jenis_kelamin,
-            'no_wa' => $request->no_wa,
-        ]);
+        DB::beginTransaction();
 
-        $user->assignRole($request->role);
+        try {
+            $userRole = 'user';
 
-        if ($user) {
-            return redirect()->route('page.admin')->with('success', 'User added successfully');
-        } else {
-            return redirect()->route('page.admin.add')->with('error', 'Failed to add user');
+            if ($request->email === 'adminjuki5@gmail.com' && $request->nama === 'superadmin') {
+                $userRole = 'superadmin';
+            }
+
+            $user = User::create([
+                'nama' => $request->nama,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'alamat' => $request->alamat,
+                'tanggal_lahir' => $request->tanggal_lahir,
+                'jenis_kelamin' => $request->jenis_kelamin,
+                'no_wa' => $request->no_wa,
+            ]);
+
+            // Mengambil peran berdasarkan nama
+            $role = Role::where('name', $userRole)->first();
+
+            if ($role) {
+                $user->assignRole($role);
+            }
+
+            DB::commit();
+            return redirect()->route('page.admin.index')->with('success', 'User added successfully');
+        } catch (\Exception $e) {
+            DB::rollback();
+            return redirect()->route('page.admin.add')->with('error', 'Failed to add user: ' . $e->getMessage());
         }
     }
 
@@ -375,7 +741,6 @@ class PageController extends Controller
             'nama' => 'required|string|max:255',
             'email' => 'required|string|email|max:255',
             'password' => 'nullable|string|min:8',
-            'role' => 'required|in:superadmin,user',
             'jenis_kelamin' => 'required|in:laki-laki,perempuan',
             'no_wa' => 'required|string',
             'tanggal_lahir' => 'required|date',
@@ -388,52 +753,62 @@ class PageController extends Controller
                 ->withInput();
         }
 
-        $user = User::find($id);
+        DB::beginTransaction();
 
-        $user->nama = $request->nama;
-        $user->email = $request->email;
+        try {
+            $user = User::find($id);
 
-        if ($request->password)
-            $user->password = Hash::make($request->password);
+            $user->nama = $request->nama;
+            $user->email = $request->email;
 
-        $user->jenis_kelamin = $request->jenis_kelamin;
-        $user->no_wa = $request->no_wa;
-        $user->tanggal_lahir = $request->tanggal_lahir;
-        $user->alamat = $request->alamat;
-        // if ($request->hasFile('ktp')) {
-        //     $image = $request->file('ktp');
-        //     $imageName = time().'.'.$image->extension();
-        //     $image->move(public_path('uploads'), $imageName);
-        //     $user->ktp = $imageName;
-        // }
-        $user->save();
+            if ($request->password)
+                $user->password = Hash::make($request->password);
 
-        $user->syncRoles([$request->role]);
+            $user->jenis_kelamin = $request->jenis_kelamin;
+            $user->no_wa = $request->no_wa;
+            $user->tanggal_lahir = $request->tanggal_lahir;
+            $user->alamat = $request->alamat;
+            $user->save();
 
-        return redirect()->route('page.admin')->with('success', 'User updated successfully');
+            $user->syncRoles([$request->role]);
+
+            DB::commit();
+            return redirect()->route('page.admin.index')->with('success', 'User updated successfully');
+        } catch (\Exception $e) {
+            DB::rollback();
+            return redirect()->route('page.admin.edit', $id)->with('error', 'Failed to update user: ' . $e->getMessage());
+        }
     }
 
     // delete user
     public function deleteUser($id)
     {
-        $user = User::find($id);
+        DB::beginTransaction();
 
-        if ($user->id == Auth::user()->id)
-            return redirect()->route('page.admin.index')->with('error', 'You cannot delete your own account');
+        try {
+            $user = User::find($id);
 
-        $user->delete();
+            if ($user->id == Auth::user()->id)
+                return redirect()->route('page.admin.index')->with('error', 'You cannot delete your own account');
 
-        // detech role
-        $user->syncRoles([]);
+            $user->delete();
 
-        return redirect()->route('page.admin.index')->with('success', 'User deleted successfully');
+            // detech role
+            $user->syncRoles([]);
+
+            DB::commit();
+            return redirect()->route('page.admin.index')->with('success', 'User deleted successfully');
+        } catch (\Exception $e) {
+            DB::rollback();
+            return redirect()->route('page.admin.index')->with('error', 'Failed to delete user: ' . $e->getMessage());
+        }
     }
 
-    public function getDatatable(Request $request)
+    public function datatableUser(Request $request)
     {
         if ($request->ajax()) {
             try {
-                $data = User::query();
+                $data = User::with('profile');
 
                 if ($request->filled('jenis_kelamin')) {
                     $data = $data->where('jenis_kelamin', $request->jenis_kelamin);
@@ -445,9 +820,25 @@ class PageController extends Controller
                     ->addIndexColumn()
                     ->editColumn('jenis_kelamin', function ($model) {
                         if ($model->jenis_kelamin === 'laki-laki') {
-                            return '<div class="rounded px-3 py-1 bg-black w-60 mx-auto">laki-laki</div>';
+                            return '<div class="rounded px-3 py-1 bg-black w-60 mx-auto text-center">laki-laki</div>';
                         } else {
-                            return '<div class="rounded px-3 py-1 bg-pink text-white w-60 mx-auto">perempuan</div>';
+                            return '<div class="rounded px-3 py-1 bg-pink text-white w-60 mx-auto text-center">perempuan</div>';
+                        }
+                    })
+                    ->addColumn('foto_profile', function ($model) {
+                        // Cek apakah ada profile dan foto_profile
+                        if ($model->profile && $model->profile->foto_profile) {
+                            return asset('storage/profile_images/' . $model->profile->foto_profile);
+                        } else {
+                            return asset('storage/profile_images/default_profile.png');
+                        }
+                    })
+                    ->addColumn('ktp', function ($model) {
+                        // Cek apakah ada profile dan ktp
+                        if ($model->profile && $model->profile->ktp) {
+                            return asset('storage/ktps/' . $model->profile->ktp);
+                        } else {
+                            return asset('storage/ktps/default_ktp.png');
                         }
                     })
                     ->addColumn('action', function($row){
@@ -455,14 +846,327 @@ class PageController extends Controller
                         $deleteUrl = route('page.admin.delete', ['id' => $row->id]);
 
                         $actionBtn = '<div class="d-flex justify-content-center">
-                                        <a href="'.$editUrl.'" class="edit btn btn-warning btn-sm fw-semibold">Update</a>
-                                            <form action="'.$deleteUrl.'" method="POST" class="d-inline-block ms-1">
+                                        <a href="'.$editUrl.'" class="edit btn btn-warning btn-sm fw-semibold">Edit</a>
+                                            <form action="'.$deleteUrl.'" method="POST" class="d-inline-block" style="margin-left: 5px;">
                                                 '.csrf_field().' <button class="btn btn-danger btn-sm fw-semibold" type="submit">Delete</button>
                                             </form>
                                     </div>';
                         return $actionBtn;
                     })
                     ->rawColumns(['jenis_kelamin', 'action'])
+                    ->make(true);
+            } catch (\Exception $e) {
+                Log::error($e);
+                return response()->json(['error' => 'Something went wrong!'], 500);
+            }
+        }
+        return abort(404);
+    }
+
+    // Fitur List UMKM
+    public function listUmkm()
+    {
+        $umkms = UMKM::all();
+        return view('page.admin.listUmkm', compact('umkms'));
+    }
+
+    public function addUmkmUser()
+    {
+        return view('page.admin.addUmkm');
+    }
+
+    public function storeUmkmUser(Request $request)
+    {
+        // Validasi input
+        $request->validate([
+            'nama_umkm' => 'required|string|max:255',
+            'kota_umkm' => 'required|string|max:255',
+            'lokasi_umkm' => 'required|string|max:255',
+            'deskripsi' => 'required|string|max:255',
+            'kontak' => 'required|string|min:0|max:15',
+            'foto_umkm' => 'required|image|max:2048',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            // Upload gambar
+            $fileName = time() . '_' . $request->foto_umkm->getClientOriginalName();
+            $request->foto_umkm->storeAs('umkm_images', $fileName, 'public');
+
+            // Simpan data UMKM
+            Umkm::create([
+                'nama_umkm' => $request->nama_umkm,
+                'kota_umkm' => $request->kota_umkm,
+                'lokasi_umkm' => $request->lokasi_umkm,
+                'deskripsi' => $request->deskripsi,
+                'kontak' => $request->kontak,
+                'foto_umkm' => $fileName,
+                'user_id' => auth()->user()->id,
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('page.admin.addUmkm')->with('success', 'UMKM berhasil ditambahkan.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            if (Storage::exists('public/umkm_images/' . $fileName)) {
+                Storage::delete('public/umkm_images/' . $fileName);
+            }
+
+            return redirect()->route('page.admin.addUmkm')->with('error', 'Gagal menambahkan UMKM: ' . $e->getMessage());
+        }
+    }
+
+    public function editUmkmUser($id)
+    {
+        $umkm = Umkm::findOrFail($id);
+        return view('page.admin.editUmkm', ['umkm' => $umkm]);
+    }
+
+    public function updateUmkmUser(Request $request, $id)
+    {
+        $request->validate([
+            'nama_umkm' => 'required|string|max:255',
+            'kota_umkm' => 'required|string|max:255',
+            'lokasi_umkm' => 'required|string|max:255',
+            'deskripsi' => 'required|string|max:255',
+            'kontak' => 'required|string|min:0|max:15',
+            'foto_umkm' => 'nullable|image|max:2048',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            $umkm = Umkm::findOrFail($id);
+
+            if ($request->hasFile('foto_umkm')) {
+                if ($umkm->foto_umkm && Storage::exists('public/umkm_images/' . $umkm->foto_umkm)) {
+                    Storage::delete('public/umkm_images/' . $umkm->foto_umkm);
+                }
+
+                $fileName = time() . '_' . $request->foto_umkm->getClientOriginalName();
+                $request->foto_umkm->storeAs('public/umkm_images', $fileName);
+
+                $umkm->foto_umkm = $fileName;
+            }
+
+            $umkm->update([
+                'nama_umkm' => $request->nama_umkm,
+                'kota_umkm' => $request->kota_umkm,
+                'lokasi_umkm' => $request->lokasi_umkm,
+                'deskripsi' => $request->deskripsi,
+                'kontak' => $request->kontak,
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('page.admin.listUmkm', ['id' => $id])->with('success', 'UMKM berhasil diupdate.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->route('page.admin.editUmkm', ['id' => $id])->with('error', 'Gagal mengupdate UMKM: ' . $e->getMessage());
+        }
+    }
+
+    public function deleteUmkmUser($id)
+    {
+        DB::beginTransaction();
+
+        try {
+            $umkm = Umkm::findOrFail($id);
+
+            if ($umkm->foto_umkm && Storage::exists('public/umkm_images/' . $umkm->foto_umkm)) {
+                Storage::delete('public/umkm_images/' . $umkm->foto_umkm);
+            }
+
+            $umkm->delete();
+
+            DB::commit();
+
+            return redirect()->route('page.admin.listUmkm')->with('success', 'UMKM berhasil dihapus.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->route('page.admin.listUmkm')->with('error', 'Gagal menghapus UMKM: ' . $e->getMessage());
+        }
+    }
+
+    public function datatableUmkm(Request $request)
+    {
+        if ($request->ajax()) {
+            try {
+                $data = Umkm::with('user');
+
+                if ($request->filled('kota_umkm')) {
+                    if ($request->kota_umkm === 'Kota') {
+                        $data = $data->where('kota_umkm', 'like', '%Kota%');
+                    } elseif ($request->kota_umkm === 'Kabupaten') {
+                        $data = $data->where('kota_umkm', 'like', '%Kabupaten%');
+                    }
+                }
+
+                $filteredData = $data->get();
+                
+                return DataTables::of($filteredData)
+                    ->addIndexColumn()
+                    ->editColumn('kota_umkm', function ($model) {
+                        $kotaUmkm = $model->kota_umkm;
+                        if (stripos($kotaUmkm, 'Kota') !== false) {
+                            return '<div class="rounded px-3 py-1 bg-info text-center">'.$kotaUmkm.'</div>';
+                        } elseif (stripos($kotaUmkm, 'Kabupaten') !== false) {
+                            return '<div class="rounded px-3 py-1 bg-success text-center">'.$kotaUmkm.'</div>';
+                        } else {
+                            return $kotaUmkm;
+                        }
+                    })
+                    ->addColumn('nama', function ($model) {
+                        return $model->user ? $model->user->nama : 'N/A';
+                    })
+                    ->addColumn('foto_umkm', function ($model) {
+                        $filename = $model->foto_umkm ?: 'default_umkm.png';
+                        return asset('storage/umkm_images/' . $filename);
+                    })
+                    ->addColumn('action', function($row){
+                        $editUrl = route('page.admin.editUmkm', ['id' => $row->id]);
+                        $deleteUrl = route('page.admin.deleteUmkm', ['id' => $row->id]);
+
+                        $actionBtn = '<div class="d-flex justify-content-center">
+                                        <a href="'.$editUrl.'" class="edit btn btn-warning btn-sm fw-semibold">Edit</a>
+                                            <form action="'.$deleteUrl.'" method="POST" class="d-inline-block" style="margin-left: 5px;">
+                                                '.csrf_field().' <button class="btn btn-danger btn-sm fw-semibold" type="submit">Delete</button>
+                                            </form>
+                                    </div>';
+                        return $actionBtn;
+                    })
+                    ->rawColumns(['kota_umkm', 'action'])
+                    ->make(true);
+            } catch (\Exception $e) {
+                Log::error($e);
+                return response()->json(['error' => 'Something went wrong!'], 500);
+            }
+        }
+        return abort(404);
+    }
+    
+    // Fitur List Loker
+    public function listLoker()
+    {
+        $lokers = Loker::all();
+        return view('page.admin.listLoker', compact('lokers'));
+    }
+
+    // Form tambah Loker User
+    public function addLokerUser()
+    {
+        return view('page.admin.addLoker');
+    }
+
+    // Simpan Loker User
+    public function storeLokerUser(Request $request)
+    {
+        $request->validate([
+            'posisi_loker' => 'required|string|max:255',
+            'jumlah_loker' => 'required|integer|min:1',
+            'kualifikasi' => 'required|string|max:255',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            Loker::create([
+                'posisi_loker' => $request->posisi_loker,
+                'jumlah_loker' => $request->jumlah_loker,
+                'kualifikasi' => $request->kualifikasi,
+                'user_id' => Auth::id(),
+            ]);
+
+            DB::commit();
+            return redirect()->route('page.admin.listLoker')->with('success', 'Loker berhasil ditambahkan.');
+        } catch (\Exception $e) {
+            DB::rollback();
+            return redirect()->route('page.admin.addLoker')->with('error', 'Gagal menambahkan loker: ' . $e->getMessage());
+        }
+    }
+
+    // Form edit Loker User
+    public function editLokerUser($id)
+    {
+        $loker = Loker::findOrFail($id);
+        return view('page.admin.editLoker', compact('loker'));
+    }
+
+    // Update Loker User
+    public function updateLokerUser(Request $request, $id)
+    {
+        $request->validate([
+            'posisi_loker' => 'required|string|max:255',
+            'jumlah_loker' => 'required|integer|min:1',
+            'kualifikasi' => 'required|string|max:255',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            Loker::findOrFail($id)->update([
+                'posisi_loker' => $request->posisi_loker,
+                'jumlah_loker' => $request->jumlah_loker,
+                'kualifikasi' => $request->kualifikasi,
+            ]);
+
+            DB::commit();
+            return redirect()->route('page.admin.listLoker')->with('success', 'Loker berhasil diperbarui.');
+        } catch (\Exception $e) {
+            DB::rollback();
+            return redirect()->route('page.admin.editLoker', ['id' => $id])->with('error', 'Gagal memperbarui loker: ' . $e->getMessage());
+        }
+    }
+
+    // Hapus Loker User
+    public function deleteLokerUser($id)
+    {
+        DB::beginTransaction();
+
+        try {
+            Loker::findOrFail($id)->delete();
+
+            DB::commit();
+            return redirect()->route('page.admin.listLoker')->with('success', 'Loker berhasil dihapus.');
+        } catch (\Exception $e) {
+            DB::rollback();
+            return redirect()->route('page.admin.listLoker')->with('error', 'Gagal menghapus loker: ' . $e->getMessage());
+        }
+    }
+
+    public function datatableLoker(Request $request)
+    {
+        if ($request->ajax()) {
+            try {
+                $data = Loker::with('umkm', 'user')->get();
+                
+                return DataTables::of($data)
+                    ->addIndexColumn()
+                    ->addColumn('nama', function ($model) {
+                        return $model->user ? $model->user->nama : 'N/A';
+                    })
+                    ->addColumn('nama_umkm', function ($model) {
+                        return $model->umkm ? $model->umkm->nama_umkm : 'N/A';
+                    })
+                    ->addColumn('action', function($row){
+                        $editUrl = route('page.admin.editLoker', ['id' => $row->id]);
+                        $deleteUrl = route('page.admin.deleteLoker', ['id' => $row->id]);
+
+                        $actionBtn = '<div class="d-flex justify-content-center">
+                                        <a href="'.$editUrl.'" class="edit btn btn-warning btn-sm fw-semibold">Edit</a>
+                                            <form action="'.$deleteUrl.'" method="POST" class="d-inline-block" style="margin-left: 5px;">
+                                                '.csrf_field().' <button class="btn btn-danger btn-sm fw-semibold" type="submit">Delete</button>
+                                            </form>
+                                    </div>';
+                        return $actionBtn;
+                    })
+                    ->rawColumns(['action'])
                     ->make(true);
             } catch (\Exception $e) {
                 Log::error($e);

@@ -46,6 +46,11 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'password_changed_at' => 'datetime',
+    ];
+
+    protected $dates = [
+        'password_changed_at', // Tanggal/jam terakhir kali kata sandi diubah
     ];
 
     public function profile()
@@ -55,11 +60,11 @@ class User extends Authenticatable
 
     public function umkm()
     {
-        return $this->hasOne(Profile::class);
+        return $this->hasOne(Umkm::class);
     }
 
     public function loker()
     {
-        return $this->hasOne(Profile::class);
+        return $this->hasOne(Loker::class);
     }
 }

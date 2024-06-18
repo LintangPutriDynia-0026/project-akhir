@@ -19,11 +19,17 @@ class Loker extends Model
         'kualifikasi',
         'email',
         'user_id',
+        'umkm_id',
     ];
 
     // Relationship dengan User
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function umkm()
+    {
+        return $this->belongsTo(UMKM::class);
     }
 }

@@ -51,7 +51,7 @@
                                 <div class="text-danger">{{ $message }}</div>
                             @enderror
                         </div>
-                        <div class="form-group mb-3">
+                        <div class="form-group mb-5">
                             <label for="password" class="form-label">Password</label>
                             <div class="input-group">
                                 <input type="password" class="form-control rounded @error('password') is-invalid @enderror"
@@ -81,10 +81,6 @@
                             @error('password')
                                 <div class="text-danger">{{ $message }}</div>
                             @enderror
-                        </div>
-                        <div class="text-end mt-2 mb-3">
-                            <a class="text-decoration-none fw-bold" href="{{ route('password.request') }}">Forgot
-                                password?</a>
                         </div>
                         <div class="d-grid gap-2">
                             <button class="btn btn-primary btn-block" type="submit">LOGIN</button>

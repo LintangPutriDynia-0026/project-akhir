@@ -1,4 +1,4 @@
-<!-- Navbar About Us-->
+<!-- Navbar About Us dan Service-->
 <header>
     <nav class="navbar navbar-expand-lg navbar-light bg-dark">
         <div class="container-fluid">
@@ -26,7 +26,8 @@
                     @endauth
                     <!-- Menu Halaman About Us -->
                     <li class="nav-item">
-                        <a class="nav-link text-white fw-bold" href="{{ route('about') }}">About
+                        <a class="nav-link {{ Request::routeIs('about') ? 'active text-info fw-bold' : 'text-white fw-bold' }}"
+                            href="{{ route('about') }}">About
                             Us</a>
                     </li>
                     <!-- Menu Halaman Contact Us -->
@@ -36,7 +37,7 @@
                             Contact Us
                         </a>
                         <ul class="dropdown-menu bg-dark border-3 border-primary" aria-labelledby="navbarDropdown">
-                            <li><a class="dropdown-item" href="https://www.instagram.com/linputri_dynia912/"
+                            <li><a class="dropdown-item" href="https://www.instagram.com/juki_officially/"
                                     target="_blank" style="color: rgb(230, 51, 170);">Instagram</a></li>
                             <li><a class="dropdown-item" href="https://www.facebook.com/lintang.p.dynia/"
                                     target=" _blank" style="color: rgb(96, 96, 202);">Facebook</a></li>
@@ -53,14 +54,15 @@
                     @endauth
                     <!-- Menu Halaman Service -->
                     <li class="nav-item">
-                        <a class="nav-link text-white fw-bold" href="{{ route('service') }}">Service</a>
+                        <a class="nav-link {{ Request::routeIs('service') ? 'active text-info fw-bold' : 'text-white fw-bold' }}"
+                            href="{{ route('service') }}">Service</a>
                     </li>
                     <!-- Menampilkan Menu Halaman Admin Jika yang Login Role SuperAdmin-->
                     @auth
                         @if (Auth::user()->roles[0]->name == 'superadmin')
                             <li class="nav-item">
-                                <a class="nav-link active text-info fw-bold" aria-current="page"
-                                    href="{{ route('admin.dashboard') }}">Admin
+                                <a class="nav-link text-danger fw-bold" aria-current="page"
+                                    href="{{ route('page.admin.index') }}">Admin
                                     Dashboard</a>
                             </li>
                         @endif
@@ -85,14 +87,15 @@
                                         alt="Profil image">
                                 @endif {{ Auth::user()->email }}
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-end bg-dark border-3 border-primary"
+                            <ul class="dropdown-menu dropdown-menu-end bg-dark border-3 border-white"
                                 aria-labelledby="gmailDropdown">
                                 <li><a class="dropdown-item text-white {{ Request::is('dashboard') ? 'active' : '' }}"
                                         href="{{ route('dashboard') }}"><i
                                             class="bi bi-speedometer2 me-2"></i>Dashboard</a>
                                 </li>
                                 <li><a class="dropdown-item text-white {{ Request::is('profil') ? 'active' : '' }}"
-                                        href="{{ route('profil') }}"><i class="bi bi-person me-2"></i>Profil</a></li>
+                                        href="{{ route('profil') }}"><i class="bi bi-person-circle me-2"></i>Profil</a>
+                                </li>
                                 <li><a class="dropdown-item text-white {{ Request::is('loker') ? 'active' : '' }}"
                                         href="{{ route('loker') }}"><i class="bi bi-briefcase me-2"></i>Loker</a></li>
                                 <li><a class="dropdown-item text-danger {{ Request::is('logout') ? 'active' : '' }}"

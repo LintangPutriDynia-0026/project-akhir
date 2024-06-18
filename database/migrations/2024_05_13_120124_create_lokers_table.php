@@ -18,6 +18,8 @@ return new class extends Migration
             $table->text('kualifikasi');
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->unsignedBigInteger('umkm_id');
+            $table->foreign('umkm_id')->references('id')->on('umkms')->onDelete('cascade');
             $table->timestamps();
         });
     }

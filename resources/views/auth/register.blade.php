@@ -2,25 +2,27 @@
 @section('title', 'Register')
 @section('content')
     <!-- Register Section -->
-    <div class="container-fluid text-white py-5" style="background-image: url('{{ asset('images/background.png') }}');">
+    <div class="container-fluid text-white py-5">
         <div class="row justify-content-center py-4">
             <div class="col-md-12 col-lg-10">
 
-                <!-- error message -->
-                @if (session('error'))
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        {{ session('error') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                @endif
+                <div class="mx-5">
+                    <!-- error message -->
+                    @if (session('error'))
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            {{ session('error') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    @endif
 
-                <!-- success message -->
-                @if (session('success'))
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        {{ session('success') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                @endif
+                    <!-- success message -->
+                    @if (session('success'))
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            {{ session('success') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    @endif
+                </div>
 
                 <div class="card mx-5 px-4 bg-dark">
                     <div class="card-body rounded">
@@ -34,16 +36,18 @@
                                     <div class="mb-3">
                                         <label for="nama" class="form-label">Nama :</label>
                                         <input type="text" class="form-control @error('nama') is-invalid @enderror"
-                                            id="nama" name="nama" placeholder="Masukkan Nama Anda" required>
+                                            id="nama" name="nama" placeholder="Masukkan Nama Anda"
+                                            value="{{ old('nama') }}">
                                         @error('nama')
-                                            <div class="text-danger">{{ $message }}</div>
+                                            <div class="text-danger">{{ $message }}
+                                            </div>
                                         @enderror
                                     </div>
                                     <div class="mb-3">
                                         <label for="tanggal_lahir" class="form-label">Tanggal Lahir :</label>
                                         <input type="date"
                                             class="form-control @error('tanggal_lahir') is-invalid @enderror"
-                                            id="tanggal_lahir" name="tanggal_lahir">
+                                            id="tanggal_lahir" name="tanggal_lahir" value="{{ old('tanggal_lahir') }}">
                                         @error('tanggal_lahir')
                                             <div class="text-danger">{{ $message }}</div>
                                         @enderror
@@ -51,10 +55,16 @@
                                     <div class="mb-3">
                                         <label for="jenis_kelamin" class="form-label">Jenis Kelamin :</label>
                                         <select class="form-select @error('jenis_kelamin') is-invalid @enderror"
-                                            id="jenis_kelamin" name="jenis_kelamin" required>
-                                            <option value="">Pilih Jenis Kelamin</option>
-                                            <option value="laki-laki">Laki-laki</option>
-                                            <option value="perempuan">Perempuan</option>
+                                            id="jenis_kelamin" name="jenis_kelamin">
+                                            <option value="0" {{ old('jenis_kelamin') == '0' ? 'selected' : '' }}>
+                                                Select Jenis Kelamin</option>
+                                            <option value="laki-laki"
+                                                {{ old('jenis_kelamin') == 'laki-laki' ? 'selected' : '' }}>
+                                                Laki-laki</option>
+                                            <option value="perempuan"
+                                                {{ old('jenis_kelamin') == 'perempuan' ? 'selected' : '' }}>
+                                                Perempuan
+                                            </option>
                                         </select>
                                         @error('jenis_kelamin')
                                             <div class="text-danger">{{ $message }}</div>
@@ -63,7 +73,7 @@
                                     <div class="form-group mb-3">
                                         <label for="alamat">Alamat :</label>
                                         <textarea id="alamat" name="alamat" class="form-control @error('alamat') is-invalid @enderror"
-                                            placeholder="Masukkan Alamat Anda" required></textarea>
+                                            placeholder="Masukkan Alamat Anda">{{ old('alamat') }}</textarea>
                                         @error('alamat')
                                             <div class="text-danger mt-2">{{ $message }}</div>
                                         @enderror
@@ -73,7 +83,8 @@
                                     <div class="mb-3">
                                         <label for="email" class="form-label">Email address :</label>
                                         <input type="email" class="form-control @error('email') is-invalid @enderror"
-                                            id="email" name="email" placeholder="Masukkan Email Anda" required>
+                                            id="email" name="email" placeholder="Masukkan Email Anda"
+                                            value="{{ old('email') }}">
                                         @error('email')
                                             <div class="text-danger">{{ $message }}</div>
                                         @enderror
@@ -100,7 +111,8 @@
                                                 </svg>
                                             </button> :</label>
                                         <input type="password" class="form-control @error('password') is-invalid @enderror"
-                                            id="password" name="password" placeholder="Masukkan Kata Sandi Anda" required>
+                                            id="password" name="password" placeholder="Masukkan Kata Sandi Anda"
+                                            value="{{ old('password') }}">
                                         @error('password')
                                             <div class="text-danger">{{ $message }}</div>
                                         @enderror
@@ -130,7 +142,7 @@
                                         <input type="password"
                                             class="form-control @error('password_confirmation') is-invalid @enderror"
                                             id="password_confirmation" name="password_confirmation"
-                                            placeholder="Konfirmasi Kata Sandi Anda" required>
+                                            placeholder="Konfirmasi Kata Sandi Anda">
                                         @error('password_confirmation')
                                             <div class="text-danger">{{ $message }}</div>
                                         @enderror
@@ -138,7 +150,8 @@
                                     <div class="mb-3">
                                         <label for="no_wa" class="form-label">No. WhatsApp :</label>
                                         <input type="number" class="form-control @error('no_wa') is-invalid @enderror"
-                                            id="no_wa" name="no_wa" placeholder="Masukkan Nomor WhatsApp Anda">
+                                            id="no_wa" name="no_wa" placeholder="Masukkan Nomor WhatsApp Anda"
+                                            value="{{ old('no_wa') }}">
                                         @error('no_wa')
                                             <div class="text-danger">{{ $message }}</div>
                                         @enderror
@@ -147,9 +160,9 @@
                             </div>
                             <div class="row">
                                 <div class="col-md-12 mt-4 mb-1 text-center">
-                                    <button type="submit" class="btn btn-primary">Kirim Data</button>
+                                    <button type="submit" class="btn btn-primary mx-1">Kirim Data</button>
                                     <button type="reset" class="btn btn-secondary">Reset</button>
-                                    <button type="button" class="btn btn-danger"
+                                    <button type="button" class="btn btn-danger mx-1"
                                         onclick="window.location.href='{{ route('login') }}'">Kembali</button>
                                 </div>
                             </div>

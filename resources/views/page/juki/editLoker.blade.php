@@ -8,10 +8,9 @@
 @endpush
 @section('title', 'Edit Loker')
 @section('content')
-    <!-- Loker Section -->
+    <!-- Edit Loker Section -->
     <div class="container my-5">
         <div class="row">
-            <!-- Data dari Database -->
             <div class="col-sm-12">
                 <div class="py-2" style="background-color: rgba(0, 0, 0, 0.7);">
                     <div class="grid mx-5 mt-4 mb-2">

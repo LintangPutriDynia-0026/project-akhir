@@ -24,4 +24,24 @@ class Umkm extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function loker()
+    {
+        return $this->hasOne(Loker::class);
+    }
+
+    public function produk()
+    {
+        return $this->hasMany(Produk::class);
+    }
+
+    public function comments()
+    {
+        return $this->morphMany(Comment::class, 'commentable');
+    }
+
+    public function likes()
+    {
+        return $this->morphMany(Like::class, 'likeable');
+    }
 }

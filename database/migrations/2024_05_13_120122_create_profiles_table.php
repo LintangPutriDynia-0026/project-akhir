@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('profiles', function (Blueprint $table) {
             $table->id();
             $table->string('foto_profile')->nullable();
-            $table->string('ktp');
+            $table->string('ktp')->nullable();
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->timestamps();

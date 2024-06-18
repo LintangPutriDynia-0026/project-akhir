@@ -11,6 +11,33 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
     @stack('styles')
     <style>
+        /* CSS khusus untuk halaman login */
+        .login-background {
+            background-image: url('{{ asset('images/background.png') }}') !important;
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+        /* CSS umum untuk halaman lain */
+        .default-background {
+            background-image: url('{{ asset('images/bg.png') }}');
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+        body {
+            max-width: 100%;
+            /* Batas lebar maksimum */
+            margin: 0 auto;
+            /* Memusatkan elemen secara horizontal */
+            overflow-x: hidden;
+            /* Menghindari scroll horizontal yang tidak diinginkan */
+        }
+
         /* CSS untuk menambahkan efek hover */
         .dropdown-item:hover {
             background-color: rgba(0, 0, 0, 0.5);
@@ -37,10 +64,24 @@
                 transform: translateX(0);
             }
         }
+
+        /* CSS untuk semua button */
+        .btn {
+            font-weight: bold;
+            font-family: Calibri;
+        }
+
+        /* CSS untuk navbar dropdown yg active */
+        .nav-link.dropdown-toggle.clicked {
+            color: DeepSkyBlue !important;
+            /* Warna teks menjadi biru saat ditekan */
+            font-weight: bold;
+            /* Membuat teks menjadi bold */
+        }
     </style>
 </head>
 
-<body style="background-image: url('{{ asset('images/background.png') }}');">
+<body class="{{ Request::is('login') ? 'login-background' : 'default-background' }}">
     <!-- Navbar -->
     @if ($navbar === 'navbar1')
         @include('component.navbar1')
@@ -57,7 +98,8 @@
     @endif
 
     <!-- Halaman content -->
-    <main class="flex-shrink-0 @if (!Request::is('login')) page-transition @endif">
+    <main class="flex-shrink-0 @if (!Request::is('login')) page-transition @endif"
+        style="width: auto; max-height: 100vh; overflow: auto;">
         @yield('content')
     </main>
 
@@ -72,6 +114,19 @@
     </script>
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('.nav-link.dropdown-toggle').click(function() {
+                // Tambahkan kelas 'clicked' saat item ditekan
+                $(this).addClass('clicked');
+            });
+
+            // Tangkap event saat dropdown ditutup
+            $('.dropdown').on('hide.bs.dropdown', function() {
+                $(this).find('.nav-link.dropdown-toggle').removeClass('clicked');
+            });
+        });
+    </script>
     @stack('scripts')
 </body>
 

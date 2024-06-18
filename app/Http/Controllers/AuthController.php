@@ -7,6 +7,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
+use App\Http\Resources\UserResource;
+
 
 class AuthController extends Controller
 {
@@ -37,30 +40,35 @@ class AuthController extends Controller
                 ->withErrors($validator)
                 ->withInput();
         }
+        
+        DB::beginTransaction();
 
-        if ($request->email == 'adminjuki5@gmail.com' && $request->nama == 'superadmin') {
-            $role = 'superadmin';
-        } else {
-            $role = 'user';
-        }
+        try {
+            if ($request->email == 'adminjuki5@gmail.com' && $request->password == 'adminJuki@2024') {
+                $role = 'superadmin';
+            } else {
+                $role = 'user';
+            }
 
-        $user = User::create([
-            'nama' => $request->nama,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'alamat' => $request->alamat,
-            'tanggal_lahir' => $request->tanggal_lahir,
-            'jenis_kelamin' => $request->jenis_kelamin,
-            'no_wa' => $request->no_wa,
-        ]);
+            $user = User::create([
+                'nama' => $request->nama,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'alamat' => $request->alamat,
+                'tanggal_lahir' => $request->tanggal_lahir,
+                'jenis_kelamin' => $request->jenis_kelamin,
+                'no_wa' => $request->no_wa,
+            ]);
 
-        $user->assignRole($role);
+            $user->assignRole($role);
 
-        if ($user) {
+            DB::commit();
+
             Auth::login($user);
             return redirect()->route('login')->with('success', 'Register success');
-        } else {
-            return redirect()->route('register')->with('error', 'Register failed');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->route('register')->with('error', 'Register failed. ' . $e->getMessage());
         }
     }
 
@@ -89,7 +97,7 @@ class AuthController extends Controller
     {
         $user = Auth::user();
 
-        return view('page.index', compact('user'));
+        return view('admin.index', compact('user'));
     }
 
     public function logout()
@@ -97,40 +105,4 @@ class AuthController extends Controller
         Auth::logout();
         return redirect()->route('login');
     }
-
-    // public function addProfil(Request $request)
-    // {
-    //     $validator = Validator::make($request->all(), [
-    //         'nama' => 'required|string|max:255',
-    //         'email' => 'required|email|max:255|unique:users',
-    //         'password' => 'required|min:8|confirmed',
-    //         'alamat' => 'required|string|max:255',
-    //         'role' => 'required|in:superadmin,user',
-    //         'tanggal_lahir' => 'required|date',
-    //         'jenis_kelamin' => 'required|in:laki-laki,perempuan',
-    //         'no_wa' => 'required|string|min:0|max:15',
-    //         'ktp' => 'required|image|mimes:jpeg,png,jpg|max:2048',
-    //     ]);
-
-    //     if ($validator->fails()) {
-    //         return redirect()->route('register')
-    //             ->withErrors($validator)
-    //             ->withInput();
-    //     }
-
-    //     $image = $request->file('ktp');
-    //     $imageName = time().'.'.$image->extension();
-    //     $image->move(public_path('uploads'), $imageName);
-
-    //     $user = User::create([
-    //         'nama' => $request->nama,
-    //         'email' => $request->email,
-    //         'password' => bcrypt($request->password),
-    //         'alamat' => $request->alamat,
-    //         'tanggal_lahir' => $request->tanggal_lahir,
-    //         'jenis_kelamin' => $request->jenis_kelamin,
-    //         'no_wa' => $request->no_wa,
-    //         'ktp' => $imageName,
-    //     ]);
-    // }
 }

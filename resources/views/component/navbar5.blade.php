@@ -30,7 +30,7 @@
                             Contact Us
                         </a>
                         <ul class="dropdown-menu bg-dark border-3 border-primary" aria-labelledby="navbarDropdown">
-                            <li><a class="dropdown-item" href="https://www.instagram.com/linputri_dynia912/"
+                            <li><a class="dropdown-item" href="https://www.instagram.com/juki_officially/"
                                     target="_blank" style="color: rgb(230, 51, 170);">Instagram</a></li>
                             <li><a class="dropdown-item" href="https://www.facebook.com/lintang.p.dynia/"
                                     target=" _blank" style="color: rgb(96, 96, 202);">Facebook</a></li>
