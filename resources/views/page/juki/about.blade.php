@@ -125,16 +125,3 @@
         </div>
     </div>
 @endsection
-
-@push('scripts')
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-        var images = [
-            "{{ asset('images/Rey2.jpg') }}",
-            "{{ asset('images/Doni2.Wepb') }}",
-            "{{ asset('images/Rezky2.jpeg') }}",
-            "{{ asset('images/Andre.jpg') }}"
-            "{{ asset('images/Putri2.jpg') }}"
-        ];
-    </script>
-@endpush
