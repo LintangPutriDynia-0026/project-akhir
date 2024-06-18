@@ -1,6 +1,7 @@
 @extends('layout.main')
 @section('title', 'Edit User')
 @section('content')
+    <!-- Edit User Section -->
     <div class="content-wrapper">
         <!-- Content Header (Page header) -->
         <div class="content-header">
@@ -120,24 +121,6 @@
                                     </span>
                                 @enderror
                             </div>
-                            {{-- <div class="mb-3 mt-3">
-                                <label for="role" class="form-label fw-semibold">Role</label>
-                                <select class="form-select @error('role') is-invalid @enderror" name="role">
-                                    <option selected disabled>Select Role</option>
-                                    <option value="superadmin"
-                                        {{ old('role') == 'superadmin' ? 'selected' : ($user->role == 'superadmin' ? 'selected' : '') }}>
-                                        SuperAdmin</option>
-                                    <option value="user"
-                                        {{ old('role') == 'user' ? 'selected' : ($user->role == 'user' ? 'selected' : '') }}>
-                                        User
-                                    </option>
-                                </select>
-                                @error('role')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
-                            </div> --}}
                             <div class="d-flex">
                                 <div class="mx-auto">
                                     <a href="{{ route('page.admin.index') }}" class="btn btn-warning me-2">

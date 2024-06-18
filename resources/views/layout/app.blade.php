@@ -83,18 +83,16 @@
 
 <body class="{{ Request::is('login') ? 'login-background' : 'default-background' }}">
     <!-- Navbar -->
-    @if ($navbar === 'navbar1')
-        @include('component.navbar1')
-    @elseif ($navbar === 'navbar2')
-        @include('component.navbar2')
-    @elseif ($navbar === 'navbar3')
-        @include('component.navbar3')
-    @elseif ($navbar === 'navbar4')
-        @include('component.navbar4')
-    @elseif ($navbar === 'navbar5')
-        @include('component.navbar5')
-    @elseif ($navbar === 'navbar6')
-        @include('component.navbar6')
+    @if ($navbar === 'navbarHome')
+        @include('component.navbarHome')
+    @elseif ($navbar === 'navbarUmkm_InfoLoker')
+        @include('component.navbarUmkm_InfoLoker')
+    @elseif ($navbar === 'navbarAboutUs_Service')
+        @include('component.navbarAboutUs_Service')
+    @elseif ($navbar === 'navbarDashboard_Profil_Loker')
+        @include('component.navbarDashboard_Profil_Loker')
+    @elseif ($navbar === 'navbarLogin')
+        @include('component.navbarLogin')
     @endif
 
     <!-- Halaman content -->

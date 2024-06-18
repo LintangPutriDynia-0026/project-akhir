@@ -1,6 +1,7 @@
 @extends('layout.main')
-@section('title', 'Edit Umkm')
+@section('title', 'Edit Loker')
 @section('content')
+    <!-- Edit Loker Section -->
     <div class="content-wrapper">
         <!-- Content Header (Page header) -->
         <div class="content-header">

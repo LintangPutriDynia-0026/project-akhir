@@ -1,6 +1,7 @@
 @extends('layout.main')
-@section('title', 'Tambah Loker')
+@section('title', 'Add Loker')
 @section('content')
+    <!-- Add Loker Section -->
     <div class="content-wrapper">
         <!-- Content Header (Page header) -->
         <div class="content-header">

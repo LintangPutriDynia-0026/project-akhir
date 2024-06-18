@@ -4,6 +4,7 @@
 @endpush
 @section('title', 'Manage User')
 @section('content')
+    <!-- Manage User Section -->
     <div class="content-wrapper" style="background-image: url('{{ asset('images/background.png') }}');">
         <!-- Content Header (Page header) -->
         <div class="content-header">
@@ -217,30 +218,32 @@
                         {
                             data: 'foto_profile',
                             name: 'foto_profile',
-                            orderable: false,
-                            searchable: false,
                             render: function(data, type, row) {
                                 if (data) {
-                                    return '<img src="' + data +
+                                    return '<img src="' +
+                                        data +
                                         '" alt="Foto Profile" width="50" height="50">';
                                 } else {
                                     return 'Tidak ada foto profil';
                                 }
-                            }
+                            },
+                            orderable: false,
+                            searchable: false,
                         },
                         {
                             data: 'ktp',
                             name: 'ktp',
-                            orderable: false,
-                            searchable: false,
                             render: function(data, type, row) {
                                 if (data) {
-                                    return '<img src="' + data +
+                                    return '<img src="' +
+                                        data +
                                         '" alt="Foto KTP" width="50" height="50">';
                                 } else {
                                     return 'Tidak ada foto KTP';
                                 }
-                            }
+                            },
+                            orderable: false,
+                            searchable: false,
                         },
                         {
                             data: 'action',

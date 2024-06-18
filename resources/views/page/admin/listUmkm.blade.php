@@ -1,11 +1,10 @@
 @extends('layout.main')
 @push('styles')
     <link href="https://cdn.datatables.net/2.0.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
-    <style>
-    </style>
 @endpush
 @section('title', 'Manage UMKM')
 @section('content')
+    <!-- List UMKM Section -->
     <div class="content-wrapper" style="background-image: url('{{ asset('images/background.png') }}');">
         <!-- Content Header (Page header) -->
         <div class="content-header">

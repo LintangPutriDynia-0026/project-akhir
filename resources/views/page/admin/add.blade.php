@@ -1,6 +1,7 @@
 @extends('layout.main')
-@section('title', 'Manage User')
+@section('title', 'Add User')
 @section('content')
+    <!-- Add User Section -->
     <div class="content-wrapper">
         <!-- Content Header (Page header) -->
         <div class="content-header">

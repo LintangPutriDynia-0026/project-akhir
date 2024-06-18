@@ -171,6 +171,10 @@
                         {
                             data: 'foto_produk',
                             name: 'foto_produk',
+                            render: function(data, type, row) {
+                                return '<img src="/storage/produk_images/' + data +
+                                    '" alt="Foto Produk" width="50" height="50">';
+                            },
                             orderable: true,
                             searchable: true
                         },

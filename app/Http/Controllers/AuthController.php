@@ -13,16 +13,19 @@ use App\Http\Resources\UserResource;
 
 class AuthController extends Controller
 {
+    // Fitur Login
     public function login()
     {
-        return view('auth.login', ['navbar' => 'navbar5', 'footer' => 'footer']);
+        return view('auth.login', ['navbar' => 'navbarLogin', 'footer' => 'footer']);
     }
 
+    // Fitur Register
     public function register()
     {
         return view('auth.register', ['navbar' => '0', 'footer' => '0']);
     }
 
+    // Menyimpan Data User
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -50,6 +53,7 @@ class AuthController extends Controller
                 $role = 'user';
             }
 
+            // Create/Menyimpan Data User
             $user = User::create([
                 'nama' => $request->nama,
                 'email' => $request->email,
@@ -72,6 +76,7 @@ class AuthController extends Controller
         }
     }
 
+    // Autentikasi User
     public function authenticate(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -97,9 +102,10 @@ class AuthController extends Controller
     {
         $user = Auth::user();
 
-        return view('admin.index', compact('user'));
+        return view('juki.index', compact('user'));
     }
 
+    // Fitur Logout
     public function logout()
     {
         Auth::logout();
