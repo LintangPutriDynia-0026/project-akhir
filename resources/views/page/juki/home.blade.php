@@ -26,7 +26,7 @@
         </div>
     </div>
 
-    <!-- UMKM Section -->
+    <!-- Saran UMKM Section -->
     <div class="container my-5">
         <div class="row">
             <div class="col-sm-12">
