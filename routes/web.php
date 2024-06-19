@@ -30,8 +30,8 @@ Route::get('/', function () {
     return view('page.juki.home', ['navbar' => 'navbarHome', 'footer' => 'footer']);
 });
 
-// Tampilan Website Sebelum Login
 // Route untuk Halaman Utama Website JUKI http://127.0.0.1:8000
+// Tampilan Website Sebelum Login
 Route::get('juki', [PageController::class, 'index'])->name('juki.index');
 Route::get('/about', [PageController::class, 'about'])->name('about');
 Route::get('/service', [PageController::class, 'service'])->name('service');

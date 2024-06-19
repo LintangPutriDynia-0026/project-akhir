@@ -13,9 +13,7 @@ class PageController extends Controller
     // Halaman Utama Website JUKI
     public function index()
     {
-        // return view('page.juki.home', ['navbar' => 'navbarHome', 'footer' => 'footer']);
-        $umkms = UMKM::limit(4)->get();
-        return view('page.juki.home', ['navbar' => 'navbarHome', 'footer' => 'footer', 'umkms' => $umkms]);
+        return view('page.juki.home', ['navbar' => 'navbarHome', 'footer' => 'footer']);
     }
 
 
