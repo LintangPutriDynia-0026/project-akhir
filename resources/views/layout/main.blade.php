@@ -5,6 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Admin Juki | Dashboard</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
 
     <!-- Google Font: Source Sans Pro -->
     <link rel="stylesheet"

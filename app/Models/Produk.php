@@ -22,11 +22,6 @@ class Produk extends Model
         return $this->belongsTo(UMKM::class);
     }
 
-    public function comments()
-    {
-        return $this->morphMany(Comment::class, 'commentable');
-    }
-
     public function likes()
     {
         return $this->morphMany(Like::class, 'likeable');

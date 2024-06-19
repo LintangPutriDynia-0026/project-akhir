@@ -9,7 +9,7 @@
                     <div class="grid mx-5 mt-4 mb-2">
                         <div class="row row-gap-3" id="umkmContainer">
                             @if ($umkms->isEmpty())
-                                <p class="text-center text-white">Tidak ada UMKM ditemukan di kota :
+                                <p class="text-center text-white">Tidak ada UMKM ditemukan di kota/kab
                                     <strong>{{ $kota_umkm }}</strong>
                                 </p>
                             @else
@@ -153,7 +153,7 @@
                             });
                         } else {
                             let message =
-                                `<p class="text-center text-white">Tidak ada UMKM ditemukan di kota: <strong>${response.kota_umkm}</strong></p>`;
+                                `<p class="text-center text-white">Tidak ada UMKM ditemukan di kota/kab <strong>${response.kota_umkm}</strong></p>`;
                             $('#umkmContainer').append(message);
                         }
                     },

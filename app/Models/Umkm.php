@@ -35,11 +35,6 @@ class Umkm extends Model
         return $this->hasMany(Produk::class);
     }
 
-    public function comments()
-    {
-        return $this->morphMany(Comment::class, 'commentable');
-    }
-
     public function likes()
     {
         return $this->morphMany(Like::class, 'likeable');

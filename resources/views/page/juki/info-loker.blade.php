@@ -9,7 +9,7 @@
                     <div class="grid mx-5 mt-4 mb-2">
                         <div class="row row-gap-3" id="lokerContainer">
                             @if ($lokers->isEmpty())
-                                <p class="text-center text-white">Tidak ada Loker UMKM ditemukan di kota: <strong
+                                <p class="text-center text-white">Tidak ada Loker UMKM ditemukan di kota/kab <strong
                                         id="kotaUmkm">{{ $kota_umkm }}</strong>
                                 </p>
                             @else
@@ -162,7 +162,7 @@
                             });
                         } else {
                             let message =
-                                `<p class="text-center text-white">Tidak ada Loker UMKM ditemukan di kota: <strong>${response.kota_umkm}</strong></p>`;
+                                `<p class="text-center text-white">Tidak ada Loker UMKM ditemukan di kota/kab <strong>${response.kota_umkm}</strong></p>`;
                             $('#lokerContainer').append(message);
                         }
                     },

@@ -12,11 +12,6 @@ use App\Http\Resources\UmkmResource;
 
 class UmkmController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth')->only('show');
-    }
-
     // Fitur Menampilkan Semua Data UMKM
     public function showUmkm()
     {
